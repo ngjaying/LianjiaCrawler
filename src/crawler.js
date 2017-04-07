@@ -62,7 +62,7 @@ const crawl = async () =>{
   await Promise.all(threads);
   logger.debug(`Complete crawl house page`);
 
-  let houseIds = await db.query(`SELECT houseid from househistory where date ="${new Date().toLocaleDateString()}"`);
+  let houseIds = await db.query(`SELECT houseid from househistory where date ="${formatDate(new Date())}"`);
   if(houseIds.length > 0){
     logger.debug(`Already scan for ${houseIds.length}/${houseUrls.length} houses`);
     houseIds = houseIds.map(n=> n.houseid);
@@ -120,6 +120,8 @@ const getCursor = () => {
   return houseCursor-1;
 }
 
+const formatDate = date => date.toISOString().slice(0, 10);
+
 const compareDate = (date1, date2) => {
   return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
 }
@@ -153,7 +155,7 @@ const crawlHouse = async(threadNum, cursor) => {
       newHouse.huxing = $('.overview .content .houseInfo .room .mainInfo').text();
       let storeyInfos = $('.overview .content .houseInfo .room .subInfo').text().split('/');
       newHouse.storey = storeyInfos[0];
-      newHouse.totalstorey = parseInt(storeyInfos[1].substring(1));
+      newHouse.totalstorey = storeyInfos[1] ? parseInt(storeyInfos[1].substring(1)) : 0;
       newHouse.orientation = $('.overview .content .houseInfo .type .mainInfo').text();
       newHouse.decoration = $('.overview .content .houseInfo .type .subInfo').text();
 
@@ -187,7 +189,7 @@ const crawlHouse = async(threadNum, cursor) => {
     history.houseid = houseId;
     history.plotid = plotId;
     history.plotname = $('.overview .content .aroundInfo .communityName a.info').text();
-    history.date = new Date().toLocaleDateString();
+    history.date = formatDate(new Date());
     history.district = district;
     history.block = block;
     history.visit = $('.record .panel .totalCount span').text();
