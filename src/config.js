@@ -10,7 +10,9 @@ const config = {
       poolSize: 20,
       acquireTimeout: 30000
     },
-    startUrl: 'http://xm.lianjia.com/ershoufang/'
+    host: 'http://xm.lianjia.com',
+    threadCount : 2,
+    httpDelay:    200,
   },
   development: {
     dbconfig: {

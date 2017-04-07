@@ -16,8 +16,7 @@ const db = {
         if(err){
           reject(err);
           return;
-        }
-        logger.log(`Established connection`);
+        }        
         conn.query(sql, (err, rows) => {
           if(err){
             reject(err);

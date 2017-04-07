@@ -8,40 +8,40 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `house` (
   `tid` bigint(31) NOT NULL,
-  `price` int(11) NOT NULL,
-  `unitprice` int(11) NOT NULL,
-  `area` float(6) NOT NULL,
+  `area` float NOT NULL,
   `plotid` bigint(31) NOT NULL,
-  `district` varchar(4),
-  `block` varchar(20),
-  `huxing` varchar(20),
-  `orientation` varchar(20),
-  `storey` varchar(11),
-  `totalstorey` int(11),
-  `decoration` varchar(20),
-  `releasetime` datetime,
-  `tradetype` varchar(20),
-  `lasttradetime` datetime,
-  `housetype` varchar(20),
-  `houseyear` varchar(20),
-  `housecode` varchar(50)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+  `district` varchar(4) DEFAULT NULL,
+  `block` varchar(20) DEFAULT NULL,
+  `huxing` varchar(20) DEFAULT NULL,
+  `orientation` varchar(20) DEFAULT NULL,
+  `storey` varchar(20) DEFAULT NULL,
+  `totalstorey` int(11) DEFAULT NULL,
+  `decoration` varchar(20) DEFAULT NULL,
+  `releasetime` datetime DEFAULT NULL,
+  `tradetype` varchar(20) DEFAULT NULL,
+  `lasttradetime` datetime DEFAULT NULL,
+  `housetype` varchar(20) DEFAULT NULL,
+  `houseyear` varchar(20) DEFAULT NULL,
+  `housecode` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`tid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
 
 -- --------------------------------------------------------
 
 --
 -- Struct of table `plot`
 --
-
 CREATE TABLE IF NOT EXISTS `plot` (
   `tid` bigint(31) NOT NULL,
-  `district` varchar(4),
-  `block` varchar(20),
-  `age` varchar(10),
-  `archtype` varchar(10),
+  `name` varchar(20) DEFAULT NULL,
+  `district` varchar(4) DEFAULT NULL,
+  `block` varchar(20) DEFAULT NULL,
+  `age` varchar(10) DEFAULT NULL,
+  `archtype` varchar(10) DEFAULT NULL,
   `storeynum` int(11) DEFAULT '0',
-  `housenum` int(11) DEFAULT '0'
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+  `housenum` int(11) DEFAULT '0',
+  PRIMARY KEY (`tid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
 
 -- --------------------------------------------------------
 
@@ -63,18 +63,20 @@ CREATE TABLE IF NOT EXISTS `deal` (
 -- Struct of table `househistory`
 --
 
-CREATE TABLE IF NOT EXISTS `househistory` (
+CREATE TABLE `househistory` (
   `houseid` bigint(31) NOT NULL,
   `plotid` bigint(31) NOT NULL,
+  `plotname` varchar(20) DEFAULT NULL,
   `date` datetime NOT NULL,
   `price` int(11) NOT NULL,
   `unitprice` int(11) NOT NULL,
-  `district` varchar(4),
-  `block` varchar(20),
-  `isnew` boolean DEFAULT 1,
-  `deltaprice` int(11),
-  `visit` int(11)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+  `district` varchar(4) DEFAULT NULL,
+  `block` varchar(20) DEFAULT NULL,
+  `isnew` tinyint(1) DEFAULT '1',
+  `deltaprice` int(11) DEFAULT NULL,
+  `visit` int(11) DEFAULT NULL,
+  PRIMARY KEY (`houseid`,`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8
 
 -- --------------------------------------------------------
 
