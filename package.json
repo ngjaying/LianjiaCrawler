@@ -16,6 +16,7 @@
     "cheerio": "^0.22.0",
     "loadash": "^0.0.1",
     "mysql": "^2.13.0",
+    "nodemailer": "^4.0.1",
     "request": "^2.81.0",
     "request-promise": "^4.2.0"
   },

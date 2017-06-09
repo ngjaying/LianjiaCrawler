@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `house` (
   `houseyear` varchar(20) DEFAULT NULL,
   `housecode` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`tid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `plot` (
   `storeynum` int(11) DEFAULT '0',
   `housenum` int(11) DEFAULT '0',
   PRIMARY KEY (`tid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -76,7 +76,7 @@ CREATE TABLE `househistory` (
   `deltaprice` int(11) DEFAULT NULL,
   `visit` int(11) DEFAULT NULL,
   PRIMARY KEY (`houseid`,`date`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 

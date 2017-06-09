@@ -12,7 +12,10 @@ const config = {
     },
     host: 'http://xm.lianjia.com',
     threadCount : 2,
-    httpDelay:    200,
+    httpDelay: 300,
+    mailto: '',
+    mailuser: '',
+    mailpass: '',
   },
   development: {
     dbconfig: {
