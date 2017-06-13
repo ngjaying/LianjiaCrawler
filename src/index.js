@@ -42,9 +42,22 @@ const maintask = async () => {
   //任务开始
   isMainTaskRunning = true;
   logger.log('Task start.');
+  let hour = new Date().getHours();
+  let delay = 300000;
+  if(hour >= 23){
+    delay = 300000 * 12 * (24 - hour + 8);
+  }else if(hour <= 7){
+    delay = 300000 * 12 * (8 - hour);
+  }
   try{
-    await crawler.crawl();
-    maintask();
+    let interrupted = await crawler.crawl();
+    let timer1 = setInterval(async ()=>{
+      interrupted = await crawler.crawl();
+      if(!interrupted){
+        clearInterval(timer1);
+        maintask();
+      }
+    }, 300000);
     // let rows = await db.query('INSERT into house (tid, price, unitprice, area, plotid) VALUES (12213213, 560, 40122, 142.1, 12321321)');
     // rows = await db.query('SELECT * from house');
   }catch(e){

@@ -1,5 +1,6 @@
 import logger from './logger';
 import req from 'request-promise';
+
 let reqOptions = {
   headers: {
     Accept:'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -12,7 +13,8 @@ let reqOptions = {
     'Upgrade-Insecure-Requests':1
   },
   encoding: 'utf-8',
-  timeout: 15000
+  timeout: 15000,
+
 };
 let maxtry = 2;
 let userAgents = ['Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6',
@@ -36,7 +38,7 @@ let httpUtil = {
     get: async(url, retry = 0) => {
         randomReqOptions();
         reqOptions.url = url;
-        logger.debug(`IP: ${reqOptions.headers['X-Forwarded-For']}`);
+        //logger.debug(`proxy: ${reqOptions.proxy}`);
         try {
             let body = await req.get(reqOptions);
             if(body.indexOf('流量异常')!=-1){

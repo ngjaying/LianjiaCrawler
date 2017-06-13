@@ -11,6 +11,7 @@ let lastSaveResulttime;
 // Crawl house pages
 let page = 1;
 let totalPage = 0; //Default to 0, will update by fetch page data
+let districtPage = 0;
 let houseUrls = [];
 // Crawl house
 let houseCursor = 0;
@@ -19,8 +20,11 @@ let housenum = 0;
 let failPages = [];
 let failHouses = [];
 let failPlots = [];
-const houseUrlsFile = './data/houses_';
+let interrupted = false;
+let httpDelay = config.httpDelay;
 
+const houseUrlsFile = './data/houses_';
+const districts = ['xiangan', 'tongan', 'jimei', 'haicang', 'huli', 'siming'];
 const initThreads = () => {
   threadStatus = new Array();
   for (var i = 0; i < config.threadCount; i++) {
@@ -38,16 +42,45 @@ const startThread = async(num, func) => {
   }
 }
 
+const init = () =>{
+  // Crawl house pages
+  page = 1;
+  totalPage = 0; //Default to 0, will update by fetch page data
+  districtPage = 0;
+  houseUrls = [];
+  // Crawl house
+  houseCursor = 0;
+  housenum = 0;
+  // Fails
+  failPages = [];
+  failHouses = [];
+  failPlots = [];
+  interrupted = false;
+  let hour = new Date().getHours();
+  if(hour >= 8 && hour <= 22){
+    httpDelay = config.httpDelay;
+  }else{
+    httpDelay = config.httpDelay * 30;
+  }
+}
+
 const crawl = async () =>{
+  init();
   initThreads();
   //分线程启动house page读取任务
   let threads = [];
   logger.debug(`Read house page urls from file ${getDate()}`);
+  let dc = 0;
   try{
-    houseUrls = await readUrlsFromFile();
+    let obj = await readUrlsFromFile();
+    dc = obj['dc'] || 0;
+    page = obj['page']||page;
+    houseUrls = obj['urls']||houseUrls;
+    logger.log(`Resume from ${dc} of page ${page}, with total ${houseUrls.length}`);
   }catch(err){logger.log(`readUrlsFromFile error: ${err}, return empty array`)}
   logger.debug(`Read house page urls from file of ${houseUrls.length} urls`);
-  if(houseUrls.length <= 0){
+  if(dc < 6){
+    districtPage = dc;
     logger.debug(`Start crawl house page with ${config.threadCount}`);
     for (let i = 0; i < config.threadCount; i++) {
       threads.push(startThread(i, crawlHousePage));
@@ -55,28 +88,30 @@ const crawl = async () =>{
     await Promise.all(threads);
     logger.debug(`Complete crawl house pages`);
     try{
-      writeUrlsToFile();
+      writeUrlsToFile(districtPage);
       logger.debug(`Complete write house pages to file ${getDate()}`);
     }catch(err){logger.error(`writeUrlsToFile error: ${err}`)}
   }
-
-  let houseIds = await db.query(`SELECT houseid from househistory where date ="${formatDate(new Date())}"`);
-  if(houseIds.length > 0){
-    logger.debug(`Already scan for ${houseIds.length}/${houseUrls.length} houses`);
-    houseIds = houseIds.map(n=> n.houseid);
-    houseUrls = houseUrls.filter(n=>{
-      return houseIds.indexOf(parseInt(getId(n))) == -1;
-    });
-    logger.debug(`Resume for ${houseUrls.length} houses`);
+  if(!interrupted){
+    let houseIds = await db.query(`SELECT houseid from househistory where date ="${formatDate(new Date())}"`);
+    if(houseIds.length > 0){
+      logger.debug(`Already scan for ${houseIds.length}/${houseUrls.length} houses`);
+      houseIds = houseIds.map(n=> n.houseid);
+      houseUrls = houseUrls.filter(n=>{
+        return houseIds.indexOf(parseInt(getId(n))) == -1;
+      });
+      logger.debug(`Resume for ${houseUrls.length} houses`);
+    }
+    initThreads();
+    logger.debug(`Start crawl house with ${config.threadCount}`);
+    for (let i = 0; i < config.threadCount; i++) {
+      threads.push(startThread(i, crawlHouse));
+    }
+    await Promise.all(threads);
+    logger.debug(`Complete crawl house`);
   }
-  initThreads();
-  logger.debug(`Start crawl house with ${config.threadCount}`);
-  for (let i = 0; i < config.threadCount; i++) {
-    threads.push(startThread(i, crawlHouse));
-  }
-  await Promise.all(threads);
-  logger.debug(`Complete crawl house`);
-  logger.summary();
+  //logger.summary();
+  return interrupted;
 }
 
 const getDate = () => {
@@ -84,8 +119,8 @@ const getDate = () => {
   return nowDate.getFullYear()+'_'+(nowDate.getMonth()+1)+'_'+nowDate.getDate();
 }
 
-const writeUrlsToFile = () => new Promise((resolve, reject) =>{
-  fs.writeFile(`${houseUrlsFile}${getDate()}`, JSON.stringify(houseUrls), (err) => {
+const writeUrlsToFile = (districtCount=6) => new Promise((resolve, reject) =>{
+  fs.writeFile(`${houseUrlsFile}${getDate()}`, JSON.stringify({dc: districtCount, page: page-1, urls: houseUrls}), (err) => {
     if(err) reject(err);
     resolve();
   });
@@ -94,12 +129,12 @@ const writeUrlsToFile = () => new Promise((resolve, reject) =>{
 const readUrlsFromFile = () => new Promise((resolve, reject) =>{
   let fileName = `${houseUrlsFile}${getDate()}`;
   fs.stat(fileName, (err, stat) => {
-    if(err) resolve([]);
+    if(err) resolve({});
     if(stat && stat.isFile()){
       fs.readFile(fileName, (err, data) => {
         if(err) {
           logger.error(`readUrlsFromFile error: ${err}`)
-          resolve([]);
+          resolve({});
         }
         resolve(JSON.parse(data));
       });
@@ -113,18 +148,38 @@ const getPage = () => {
   return page-1;
 }
 
+const getDistrictPage = () => {
+  districtPage++;
+  return districtPage;
+}
+
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-const crawlHousePage = async (threadNum, nextPage) => {
+const crawlHousePage = async (threadNum, nextPage, nextDistrict) => {
+  if(districtPage >= districts.length){
+    logger.debug(`Crawl all district, return}`);
+    return;
+  }
+  if (nextDistrict == undefined){
+    nextDistrict = districtPage;
+  }else{ //Start a new district
+    logger.debug(`Start new district ${nextDistrict}`);
+    totalPage = 0;
+    page = 1;
+  }
   if (nextPage == undefined) nextPage = getPage();
   //如果已读完列表中所有用户，或者全部线程已停止（往往是强制停止）则返回
   //if (nextPage > totalPage || isallthreadstopped()) {
   if (totalPage > 0 && nextPage > totalPage) {
-      return;
+      await crawlHousePage(threadNum, undefined, getDistrictPage());
   }
-  let url = `${config.host}/ershoufang/pg${nextPage}/`;
+  let url = `${config.host}/ershoufang/${districts[nextDistrict]}/pg${nextPage}co32ng1nb1`;
   logger.debug(`crawl house page ${url}`);
   let body = await httpUtil.get(url);
-  if(body && body.indexOf('流量异常')==-1){
+  if(body){
+    if(body=='stop'){
+      interrupted = true;
+      return;
+    }
     let $ = cheerio.load(body);
     $('.sellListContent li .info .title a').each((i, elem) =>{
       houseUrls.push($(elem).attr('href'));
@@ -139,7 +194,9 @@ const crawlHousePage = async (threadNum, nextPage) => {
     failPages.push(nextPage);
     logger.error(`Crawl page ${url} fail!`);
   }
-  await sleep(Math.floor(Math.random() * 1000) + config.httpDelay);
+  let sleepTime = Math.floor(Math.random() * 1000 + 500) + httpDelay;
+  await sleep(sleepTime);
+  logger.debug(sleepTime);
   await crawlHousePage(threadNum);
 }
 
@@ -165,6 +222,7 @@ const crawlHouse = async(threadNum, cursor) => {
     let body = await httpUtil.get(url);
     if(body){
       if(body=='stop'){
+        interrupted = true;
         return;
       }
       let $ = cheerio.load(body, {decodeEntities: false});
@@ -198,7 +256,7 @@ const crawlHouse = async(threadNum, cursor) => {
         newHouse.lasttradetime = isNaN(Date.parse(newHouse.lasttradetime)) ? null : newHouse.lasttradetime;
         newHouse.housetype = getValueFromEle($(transEles[3]).html());
         newHouse.houseyear = getValueFromEle($(transEles[4]).html());
-        newHouse.housecode = getValueFromEle($(transEles[8]).html());
+        newHouse.housecode = $(transEles[8]).html()?getValueFromEle($(transEles[8]).html()):'';
         let select = `INSERT into house (tid, area, plotid, district, block, huxing, storey, totalstorey, orientation, decoration, releasetime, tradetype,lasttradetime,housetype,houseyear,housecode)VALUES(${newHouse.tid},${newHouse.area},${newHouse.plotid},"${newHouse.district}","${newHouse.block}","${newHouse.huxing}","${newHouse.storey}",${newHouse.totalstorey},"${newHouse.orientation}","${newHouse.decoration}","${newHouse.releasetime}","${newHouse.tradetype}",${newHouse.lasttradetime ? '\"' + newHouse.lasttradetime + '\"' : null},"${newHouse.housetype}","${newHouse.houseyear}","${newHouse.housecode}")`;
         logger.debug(select);
         db.query(select).then((house) =>{
@@ -261,7 +319,9 @@ const crawlHouse = async(threadNum, cursor) => {
       return;
     }
   }
-  await sleep(Math.floor(Math.random() * 10000 + 500) + config.httpDelay);
+  let sleepTime = Math.floor(Math.random() * 1000 + 500) + httpDelay;
+  await sleep(sleepTime);
+  logger.debug(`sleep for ${sleepTime}`);
   await crawlHouse(threadNum);
 }
 
@@ -272,6 +332,7 @@ const crawlPlot = async (url, house) => {
   try{
     if(body){
       if(body=='stop'){
+        interrupted = true;
         return;
       }
       let $ = cheerio.load(body);
@@ -292,7 +353,7 @@ const crawlPlot = async (url, house) => {
     }
   }catch(ex){
     failPlots.push([url, plot]);
-    logger.error(`crawl house fail recorded`, {from: `crawlHouse/${url}`, code: '1002', msg: ex});
+    logger.error(`crawl house fail recorded ${ex}`, {from: `crawlHouse/${url}`, code: '1002', msg: ex});
   }
 }
 
