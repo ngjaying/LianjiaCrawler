@@ -73,11 +73,11 @@ let httpUtil = {
         //logger.debug(`proxy: ${reqOptions.proxy}`);
         try {
             let body = await req.get(reqOptions);
-            if(body.indexOf('流量异常')!=-1){
-              logger.error(`Cannot getting ${url}, locked`, {from: 'httpUtil/get', code: '0002', msg: 'Locked by lianjia'});
+            if(body.indexOf('流量异常')!=-1){              
               if(await verifyHuman(body)){
                 get(url);
               }else{
+                logger.error(`Cannot getting ${url}, locked`, {from: 'httpUtil/get', code: '0002', msg: 'Locked by lianjia'});
                 body='Stop';
               }
             }
