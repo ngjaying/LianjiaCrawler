@@ -46,12 +46,13 @@ let randomReqOptions = () => {
   reqOptions.headers['X-Forwarded-For'] = `${Math.floor(Math.random() * 266 )}.${Math.floor(Math.random() * 266 )}.${Math.floor(Math.random() * 266 )}.${Math.floor(Math.random() * 266 )}`;
 }
 const verifyHuman = async (body) => {
+  let retry = 0;
   let $ = cheerio.load(body);
   let csrf = $("form.human input[name='_csrf']").val();
   logger.debug(csrf);
   let res, uuid;
   ajaxOptions.url = 'http://captcha.lianjia.com/human';
-  while(true){
+  while(retry <= 100){
     res = await req.get(ajaxOptions);
     res = JSON.parse(res);
     uuid = res.uuid;
@@ -61,6 +62,7 @@ const verifyHuman = async (body) => {
     res = JSON.parse(res);
     if(!res['error'])
       return true;
+    retry++;
   }
   return false;
 }

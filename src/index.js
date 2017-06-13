@@ -53,11 +53,12 @@ const maintask = async () => {
     let interrupted = await crawler.crawl();
     let timer1 = setInterval(async ()=>{
       interrupted = await crawler.crawl();
+      logger.summary();
       if(!interrupted){
         clearInterval(timer1);
         maintask();
       }
-    }, 300000);
+    }, delay);
     // let rows = await db.query('INSERT into house (tid, price, unitprice, area, plotid) VALUES (12213213, 560, 40122, 142.1, 12321321)');
     // rows = await db.query('SELECT * from house');
   }catch(e){

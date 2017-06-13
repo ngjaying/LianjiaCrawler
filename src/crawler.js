@@ -57,11 +57,11 @@ const init = () =>{
   failPlots = [];
   interrupted = false;
   let hour = new Date().getHours();
-  if(hour >= 8 && hour <= 22){
-    httpDelay = config.httpDelay;
-  }else{
-    httpDelay = config.httpDelay * 30;
-  }
+  // if(hour >= 8 && hour <= 22){
+  //   httpDelay = config.httpDelay;
+  // }else{
+  //   httpDelay = config.httpDelay * 30;
+  // }
 }
 
 const crawl = async () =>{
