@@ -43,7 +43,7 @@ const maintask = async () => {
   isMainTaskRunning = true;
   logger.log('Task start.');
   let hour = new Date().getHours();
-  let delay = 300000;
+  let delay = 300000 * 12;
   if(hour >= 23){
     delay = 300000 * 12 * (24 - hour + 8);
   }else if(hour <= 7){
@@ -53,8 +53,8 @@ const maintask = async () => {
     let interrupted = await crawler.crawl();
     let timer1 = setInterval(async ()=>{
       interrupted = await crawler.crawl();
-      logger.summary();
       if(!interrupted){
+        logger.summary();
         clearInterval(timer1);
         maintask();
       }

@@ -212,6 +212,9 @@ const compareDate = (date1, date2) => {
 }
 
 const crawlHouse = async(threadNum, cursor) => {
+  if(interrupted){
+    return;
+  }
   if (cursor == undefined) cursor = getCursor();
   if (cursor >= houseUrls.length) {
     return;
@@ -322,7 +325,7 @@ const crawlHouse = async(threadNum, cursor) => {
   let sleepTime = Math.floor(Math.random() * 1000 + 500) + httpDelay;
   await sleep(sleepTime);
   logger.debug(`sleep for ${sleepTime}`);
-  await crawlHouse(threadNum);
+  process.nextTick(await crawlHouse(threadNum));
 }
 
 const crawlPlot = async (url, house) => {
