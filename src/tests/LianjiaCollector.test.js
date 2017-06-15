@@ -1,4 +1,5 @@
-import {LianjiaCollector} from '../collectors/LianjiaCollector'
+import {LianjiaCollector} from '../collectors/LianjiaCollector';
+import logger from './logger';
 //data
 let html = `
 <!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><meta http-equiv="Content-language" content="zh-CN" /><meta name="format-detection" content="telephone=no" /><meta name="applicable-device" content="pc"><link rel="alternate" media="only screen and (max-width: 640px)" href="https://m.lianjia.com/xm/ershoufang/xiangan/pg2co32ng1nb1/" >
