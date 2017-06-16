@@ -2,6 +2,7 @@ import config from './config';
 import logger from './utils/logger';
 import db from './utils/db';
 import crawler from './crawler';
+import {LianjiaDistributor} from './distributors/LianjiaDistributor';
 
 let nextStartTime;//下次执行任务的具体时间
 let isMainTaskRunning = false;
@@ -41,28 +42,43 @@ const maintask = async () => {
   }
   //任务开始
   isMainTaskRunning = true;
-  logger.log('Task start.');
-  let hour = new Date().getHours();
-  let delay = 300000 * 12;
-  if(hour >= 23){
-    delay = 300000 * 12 * (24 - hour + 8);
-  }else if(hour <= 7){
-    delay = 300000 * 12 * (8 - hour);
-  }
+  logger.log('Main Task start.');
+  let tasks = [];
+  let LD = new LianjiaDistributor();
+  tasks.push(runTask(LD));
   try{
-    let interrupted = await crawler.crawl();
-    let timer1 = setInterval(async ()=>{
-      interrupted = await crawler.crawl();
-      if(!interrupted){
-        logger.summary();
-        clearInterval(timer1);
-        maintask();
-      }
-    }, delay);
-    // let rows = await db.query('INSERT into house (tid, price, unitprice, area, plotid) VALUES (12213213, 560, 40122, 142.1, 12321321)');
-    // rows = await db.query('SELECT * from house');
-  }catch(e){
-    logger.error(e);
+    await Promise.all(tasks);
+  }catch(ex){
+    //Should not happen here
+    logger.error(`Error happens in promise all tasks ${ex}`);
+  }
+  process.nextTick(maintask);
+}
+
+const runTask = async (distributor) => {
+  logger.log('Run task');
+  let retry = false;
+  try{
+    await distributor.run();
+  }catch(ex){
+    logger.error(`Error happens, will run later ${ex}`);
+    retry = true;
+  }
+  return;
+  if(retry){
+    let delay = 300000 * 12;
+    return new Promise((resolve) => {
+      let timer1 = setInterval(async ()=>{
+        try{
+          logger.log('Retry task');
+          await distributor.run();
+          clearInterval(timer1);
+          resolve();
+        }catch(ex){
+          logger.error(`Error happens, will run later ${ex}`);
+        }
+      }, delay);
+    });
   }
 }
 

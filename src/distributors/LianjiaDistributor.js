@@ -67,7 +67,7 @@ export class LianjiaDistributor extends Distributor{
       let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
       logger.debug(sleepTime);
       await CommonUtil.sleep(sleepTime);
-      process.nextTick(await this._doRun());
+      await this._doRun();
     }catch(ex){
       //被屏蔽了
       if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){

@@ -10,9 +10,7 @@ export class LianjiaCrawler extends Crawler{
   }
 
   async crawl(url){
-    this._reqOptions.url = url;
-    //req.debug = true;
-    logger.debug(this._reqOptions.headers.cookie);
+    this._reqOptions.url = url;    
     let body = await req.get(this._reqOptions);
     if(body.indexOf('流量异常')!=-1){
       if(await this._verifyHuman(body)){
