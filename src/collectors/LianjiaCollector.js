@@ -6,7 +6,7 @@ import CommonUtil from '../utils/CommonUtil';
 export class LianjiaCollector extends Collector {
   constructor(html, district){
     let mapping = {
-      'houseid' : '.sellListContent .title a', //"https://xm.lianjia.com/ershoufang/105100823517.html"
+      'houseid' : '.sellListContent .title a', //"https://xm.lianjia.com/ershoufang/105100823517.html" or "https://nl.hideproxy.me/go.php?u=https%3A%2F%2Fxm.lianjia.com%2Fershoufang%2F105100737092.html&b=4"
       'price' : '.sellListContent .priceInfo .totalPrice span', //"429"
       'unitprice': '.sellListContent .priceInfo .unitPrice span', //"单价34879元/平米"
       'plot': '.sellListContent .address .houseInfo a',  // text "明发半岛祥湾A区 " href "https://xm.lianjia.com/xiaoqu/3911057442606/"
@@ -107,10 +107,16 @@ export class LianjiaCollector extends Collector {
 
     }
   }
-
   _getId(url=''){
-    let urlParts = url.split('/').filter(i => i);
-    let urlPart = urlParts[urlParts.length -1];
+    let splitStr = url.indexOf('%2F') > 0 ? '%2F' : '/';
+    let urlParts = url.split(splitStr);
+    let urlPart = '';
+    urlParts.forEach((v, i, a)=>{
+      if(v == 'ershoufang' || v == 'xiaoqu'){
+        urlPart = a[i+1];
+        return;
+      }
+    });    
     return urlPart.indexOf('.') >= 0 ? urlPart.substring(0, urlPart.indexOf('.')) : urlPart;
   }
 
