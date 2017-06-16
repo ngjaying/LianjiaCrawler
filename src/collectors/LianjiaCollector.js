@@ -1,6 +1,7 @@
 import {Collector} from './Collector';
 import logger from '../utils/logger';
 import db from '../utils/db';
+import CommonUtil from '../utils/CommonUtil';
 
 export class LianjiaCollector extends Collector {
   constructor(html, district){
@@ -13,9 +14,20 @@ export class LianjiaCollector extends Collector {
       'follow': '.sellListContent .followInfo',  //"1人关注 / 共0次带看 / 3天以前发布"
       'house': '.sellListContent .address .houseInfo',  //"明发半岛祥湾A区  | 3室2厅 | 128.55平米 | 南 北 | 精装"
       'position': '.sellListContent .flood .positionInfo', //"中楼层(共18层)2013年建板楼  -  新店"
+      'page': '.page-box.house-lst-page-box'
     }
     super(html, mapping);
+    this.district = district || '';
+  }
+
+  setDistrict(district){
     this.district = district;
+  }
+
+  getTotalPage(){
+    let result = super.collect();
+    let pageData = JSON.parse(result['page'].last().attr('page-data'));
+    return pageData.totalPage;
   }
 
   async save(){
@@ -48,7 +60,7 @@ export class LianjiaCollector extends Collector {
           obj['deltaprice'] = 0;
         }else{
           logger.debug(`Got existing history ${historys[0].date}`);
-          if(this._compareDate(new Date(), new Date(historys[0].date))){
+          if(CommonUtil.compareDate(new Date(), new Date(historys[0].date))){
             logger.debug(`compare equal`);
             doInsert = false;
           }else{
@@ -58,7 +70,7 @@ export class LianjiaCollector extends Collector {
           }
         }
         if(doInsert){
-          let sqlstr = `INSERT into househistory (houseid, price, unitprice, plotid, plotname, district, block, date, visit, isnew, deltaprice) VALUES(${obj.houseid},${obj.price},${obj.unitprice},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${this._formatDate(new Date())}",${obj.visit},${obj.isnew},${obj.deltaprice})`;
+          let sqlstr = `INSERT into househistory (houseid, price, unitprice, plotid, plotname, district, block, date, visit, isnew, deltaprice) VALUES(${obj.houseid},${obj.price},${obj.unitprice},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${CommonUtil.formatDate(new Date())}",${obj.visit},${obj.isnew},${obj.deltaprice})`;
           logger.debug(sqlstr);
           db.query(sqlstr).catch(err =>{
             logger.error(`Error when insert househistory ${obj.houseid}, will ignore it`);
@@ -137,13 +149,5 @@ export class LianjiaCollector extends Collector {
       logger.error(ex);
     }
     return result;
-  }
-
-  _formatDate(date){
-    return date.toISOString().slice(0, 10);
-  }
-
-  _compareDate(date1, date2){
-    return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
   }
 }

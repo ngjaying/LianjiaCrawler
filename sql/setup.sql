@@ -92,3 +92,14 @@ CREATE TABLE IF NOT EXISTS `plothistory` (
   `housenum` int(11) NOT NULL,
   `visitnum` int(11) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+-- --------------------------------------------------------
+
+--
+-- Struct of table `crawlprogress`
+--
+
+CREATE TABLE IF NOT EXISTS `crawlprogress` (
+  `dc` int(3) NOT NULL,
+  `page` int(5) NOT NULL,
+  `date` datetime NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
