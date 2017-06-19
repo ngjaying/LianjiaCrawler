@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS `plothistory` (
 --
 
 CREATE TABLE IF NOT EXISTS `crawlprogress` (
+  `type` INT(3) NULL DEFAULT 0 COMMENT '0 house, 1 plot, 2 deal',
   `dc` int(3) NOT NULL,
   `page` int(5) NOT NULL,
   `date` datetime NOT NULL

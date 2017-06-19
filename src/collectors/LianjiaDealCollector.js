@@ -12,8 +12,8 @@ export class LianjiaDealCollector extends LianjiaCollector {
       'price' : '.listContent .info .address .totalPrice .number', //"160"
       'position': '.listContent .info .flood .positionInfo', //"高楼层(共11层) 2000年建塔楼"
       'unitprice': '.listContent .info .flood .unitPrice .number', //"32740"
-      'cycle': '.listContent .info .dealCycleeInfo .dealCycleTxt span',  //偶数 "挂牌620万"  奇数 "成交周期23天"
-      'page': '.page-box.house-lst-page-box'
+      'cycle': '.listContent .info .dealCycleeInfo .dealCycleTxt',  //"挂牌620万成交周期23天"
+      'page': '.resultDes .total span' //"53"
     }
     super(html, mapping);
   }
@@ -32,8 +32,9 @@ export class LianjiaDealCollector extends LianjiaCollector {
         obj['unitprice'] = result['unitprice'].eq(i).text();
         this._saveHouse(Object.assign({}, obj), result, i);
         obj['dealtime'] = CommonUtil.formatDate(new Date(Date.parse(result['dealdate'].eq(i).text())));
-        obj['targetprice'] = parseInt(result['cycle'].eq(i*2).text().replace( /^\D+/g, ''));
-        obj['period'] = parseInt(result['cycle'].eq(i*2 + 1).text().replace( /^\D+/g, ''));
+        let cycleInfo = this._getCycleInfo(result['cycle'].eq(i).text());
+        obj['targetprice'] = cycleInfo['targetprice'];
+        obj['period'] = cycleInfo['period'];
         //Save deal
         let sqlstr = `SELECT houseid from deal where houseid = ${obj['houseid']}`;
         logger.debug(sqlstr);
@@ -74,12 +75,26 @@ export class LianjiaDealCollector extends LianjiaCollector {
     }
   }
 
+  _getCycleInfo(text){
+    let result = {targetprice: 0, period: 0};
+    try{
+      let parts = text.split('万');
+      let targetprice = parseInt(parts[0].replace(/^\D+/g, ''));
+      let period = parseInt(parts[1].replace(/^\D+/g, ''));
+      result.targetprice = isNaN(targetprice) ? 0 : targetprice;
+      result.period = isNaN(period) ? 0 : period;
+    }catch(ex){
+      logger.error(ex);
+    }
+    return result;
+  }
+
   _getHouseInfo(text){
     let result = {orientation: '', decoration: ''};
     try{
       let parts = text.split('|');
       result.orientation = parts[0].trim();
-      result.decoration = parts[1].trim();
+      result.decoration = parts[1].trim().replace(/&nbsp;/gi,'');
     }catch(ex){
       logger.error(ex);
     }

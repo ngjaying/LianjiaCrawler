@@ -14,7 +14,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
       'follow': '.sellListContent .followInfo',  //"1人关注 / 共0次带看 / 3天以前发布"
       'house': '.sellListContent .address .houseInfo',  //"明发半岛祥湾A区  | 3室2厅 | 128.55平米 | 南 北 | 精装"
       'position': '.sellListContent .flood .positionInfo', //"中楼层(共18层)2013年建板楼  -  新店"
-      'page': '.page-box.house-lst-page-box'
+      'page': '.resultDes .total span' //"53"
     }
     super(html, mapping);
     this.district = district || '';
@@ -25,7 +25,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
   }
 
   async save(){
-    const result = super.collect();    
+    const result = super.collect();
     if(!result['houseid'] || !result['houseid'].length){
       throw new Error(`LianjiaHouseCollector save error: collect html without house ids`);
     }

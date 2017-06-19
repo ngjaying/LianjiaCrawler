@@ -1,22 +1,26 @@
 import {Distributor} from './Distributor';
 import {LianjiaCrawler} from '../crawlers/LianjiaCrawler';
-import {LianjiaCollector} from '../collectors/LianjiaCollector';
+import {LianjiaDealCollector} from '../collectors/LianjiaDealCollector';
+import {LianjiaPlotCollector} from '../collectors/LianjiaPlotCollector';
+import {LianjiaHouseCollector} from '../collectors/LianjiaHouseCollector';
 import db from '../utils/db';
 import CommonUtil from '../utils/CommonUtil';
 import logger from '../utils/logger';
-
+//严格单线程
 export class LianjiaDistributor extends Distributor{
 
-  constructor(){
+  constructor(isNew){
+    //第一次运行，需要去爬取小区
     let crawler = new LianjiaCrawler();
-    let collector = new LianjiaCollector();
+    let collector = !!isNew ? new LianjiaPlotCollector() : new LianjiaHouseCollector();
     super(crawler, collector);
+    this.isNew = !!isNew;
     this.crawler.setCookie(`lianjia_uuid=15e2f095-d460-49eb-86ce-af527a684e97; UM_distinctid=15ab752b2a34ae-03b0601076ca74-67f1a39-1fa400-15ab752b2a498c; _csrf=5f0636a97e4aee71b6c7288607413a89ea1f87ab68df51fff1dbaf9d9e2576c6a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%224a8lTQwf-OEux2r1EtR9bOJB_aoHWH3a%22%3B%7D; app_matrix_servers=e8d6171c1ec6a632142fec1ca24ccfa9; select_city=350200; _smt_uid=58c262fe.51c1f618; _ga=GA1.2.1749135290.1489134336; _gid=GA1.2.1615422921.1497167865; lianjia_ssid=c2f1438d-4538-4323-84c9-109fabd46d7b`);
     this.districts = ['xiangan', 'tongan', 'jimei', 'haicang', 'huli', 'siming'];
     this.districtNames = ['翔安', '同安', '集美', '海沧', '湖里', '思明'];
     this.totalPage = 0;
     this.proxyIndex = 0;
-    this.collector.setDistrict(this.districtNames[this.districtPage]);
+    this.completed = false;
     //TODO Proxy and cookie setting
     this.proxies = [
       {
@@ -41,71 +45,152 @@ export class LianjiaDistributor extends Distributor{
       this.isContinue = false;
       this.districtPage = 0;
       this.page = 1;
+      this.crawlType = this.isNew ? 1 : 0;
+      logger.log(`Start from ${this.crawlType} in district ${this.districtPage} of page ${this.page}`);
     }else{
       this.isContinue = true;
       this.districtPage = progress[0].dc;
       this.page = progress[0].page;
-      logger.log(`Resume from ${this.districtPage} of page ${this.page}`);
+      this.crawlType = progress[0].type;
+      logger.log(`Resume from ${this.crawlType} in district ${this.districtPage} of page ${this.page}`);
     }
-    this.collector.setDistrict(this.districtNames[this.districtPage]);
+    if(this.crawlType == 0){
+      if(this.isNew){
+        this.isNew = false;
+      }
+      this.collector.setDistrict(this.districtNames[this.districtPage]);
+    }
+    this._getNextCrawl(this.crawlType);
     await this._doRun();
   }
 
   async _doRun(){
+    let url;
     try{
-      //翻区
       if (this.totalPage > 0 && this.page > this.totalPage) {
-          this.districtPage++;
+          logger.debug(`${this.page}/${this.totalPage}`);
+          if(this.crawlType == 0){ //翻区
+            this.page = 1;
+            this.totalPage = 0;
+            this.districtPage++;
+            if(this.districtPage >= this.districts.length){
+              this.completed = true;
+            }else{
+              this.collector.setDistrict(this.districtNames[this.districtPage]);
+            }
+          }else{
+            this.completed = true;
+          }
+      }
+      //完成某个类型
+      if(this.completed){
+        if(this.failUrls.length > 0){
+          logger.debug(`Start crawling fail urls`);
+          let failUrls = Object.assign(this.failUrls);
+          //Redo once for fail urls
+          for(let failUrl in failUrls){
+            this.failUrls.pop();
+            await this.process(failUrl);
+          }
+          if(this.failUrls.length > 0){
+            logger.error(`Still have ${this.failUrls.length} fails`, {from: `LianjiaDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})
+          }
+        }
+        logger.debug(`Already crawl ${this.crawlType}`);
+        if(this.crwalType == 1){
+          this.isNew = false;
+        }
+        //crawlType顺序 1,0,2,1；先进行小区，历史，成交，新小区
+        this.crawlType = this._getNextCrawl();
+        if(this.crawlType >= 0){
+          //init again
           this.page = 1;
           this.totalPage = 0;
-          this.collector.setDistrict(this.districtNames[this.districtPage]);
-      }
-      if(this.districtPage >= this.districts.length){
-        logger.debug(`Already crawl all houses!`);
-        if(this.isContinue){
-          await db.query(`UPDATE crawlprogress SET dc = 6 where date = "${CommonUtil.formatDate(new Date())}"`);
+          this.districtPage = 0;
         }else{
-          await db.query(`INSERT into crawlprogress (dc, page, date) VALUES (6, 1, "${CommonUtil.formatDate(new Date())}") `);
+          logger.debug(`Already crawl all types`);
+          if(this.isContinue){
+            await db.query(`UPDATE crawlprogress SET type = ${this.crawlType}, dc = 6 where date = "${CommonUtil.formatDate(new Date())}"`);
+          }else{
+            await db.query(`INSERT into crawlprogress (type, dc, page, date) VALUES (${this.crawlType}, 6, 1, "${CommonUtil.formatDate(new Date())}") `);
+          }
+          return;
         }
-        return;
-      }      
-      let url = this._getUrl(`http://xm.lianjia.com/ershoufang/${this.districts[this.districtPage]}/pg${this.page}co32ng1nb1`);
-      logger.debug(`crawl house page ${url}`);
-      let body = await this.crawler.crawl(url);
-      this.collector.setHtml(body);
-      if(this.totalPage<=0){
-        this.totalPage = this.collector.getTotalPage();
       }
-      await this.collector.save();
+      url = this._getUrl(this.crawlType, this.page, this.districtPage);
+      await this.process(url);
       this.page++;
-      let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
-      logger.debug(sleepTime);
-      await CommonUtil.sleep(sleepTime);
-      await this._doRun();
     }catch(ex){
-      //被屏蔽了
-      if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
-        logger.error(ex['name']);
-        if(this.isContinue){
-          await db.query(`UPDATE crawlprogress SET dc = ${this.districtPage}, page = ${this.page} where date = "${CommonUtil.formatDate(new Date())}"`);
-        }else{
-          await db.query(`INSERT into crawlprogress (dc, page, date) VALUES (${this.districtPage}, ${this.page}, "${CommonUtil.formatDate(new Date())}")`);
-        }
-        //TODO change Proxy
-        this.proxyIndex++;
-        if(this.proxyIndex >= this.proxies.length){
-          throw ex;
-        }else{
-          this.crawler.setCookie(this.proxies[this.proxyIndex-1].cookie);
-          await this._doRun();
-        }
+      await this.handleError(ex);
+    }
+    let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
+    logger.debug(sleepTime);
+    await CommonUtil.sleep(sleepTime);
+    await this._doRun();
+  }
+
+  _getNextCrawl(crawlType){
+    if(!crawlType){
+      if(this.crawlType == 1){
+        crawlType = 0;
+      }else if(this.crawlType == 0){
+        crawlType = 2;
       }else{
-        logger.error(ex);
+        crawlType = -1;
       }
+    }
+    if(crawlType == 0){
+      this.setCollector(new LianjiaHouseCollector());
+    }else if(crawlType == 2){
+      this.setCollector(new LianjiaDealCollector());
+    }
+    return crawlType;
+  }
+
+  async process(url){
+    logger.debug(`crawl page ${url} of total page ${this.totalPage}`);
+    await super.process(url);
+    if(this.totalPage<=0){
+      this.totalPage = this.collector.getTotalPage();
     }
   }
 
-  _getUrl(url){
+  async handleError(ex, url){
+    //被屏蔽了
+    if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
+      logger.error(ex['name']);
+      if(this.isContinue){
+        await db.query(`UPDATE crawlprogress SET type = ${this.crawlType}, dc = ${this.districtPage}, page = ${this.page} where date = "${CommonUtil.formatDate(new Date())}"`);
+      }else{
+        await db.query(`INSERT into crawlprogress (type, dc, page, date) VALUES (${this.crawlType}, ${this.districtPage}, ${this.page}, "${CommonUtil.formatDate(new Date())}")`);
+      }
+      this.proxyIndex++;
+      if(this.proxyIndex >= this.proxies.length){
+        throw ex;
+      }else{
+        this.crawler.setCookie(this.proxies[this.proxyIndex-1].cookie);
+        //需要先访问一下才可用代理
+        try{
+          await this.crawler.crawl(this.proxies[this.proxyIndex-1].url);
+        }catch(ex){}
+        await this._doRun();
+      }
+    }else{
+      logger.error(ex);
+    }
+  }
+
+  _getUrl(crawlType, page, dp){
+    let url;
+    if(crawlType == 0){
+      url = `http://xm.lianjia.com/ershoufang/${this.districts[dp]}/pg${page}co32ng1nb1`;
+    }else if(crawlType == 1){
+      url = `https://xm.lianjia.com/xiaoqu/pg${page}/`;
+    }else if(crawlType == 2){
+      url = `https://xm.lianjia.com/chengjiao/pg${page}/`;
+    }else{
+      throw "_getUrl: Invalid crawlType";
+    }
     if(this.proxyIndex > 0){
       url = this.proxies[this.proxyIndex-1].url.replace('url', encodeURIComponent(url));
     }

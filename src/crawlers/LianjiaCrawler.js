@@ -12,13 +12,14 @@ export class LianjiaCrawler extends Crawler{
   async crawl(url){
     this._reqOptions.url = url;
     let body = await req.get(this._reqOptions);
+    debugger
     if(body.indexOf('流量异常')!=-1){
       if(await this._verifyHuman(body)){
         return await this.crawl(url);
       }else{
         throw {name: 'Crawler_Locked', message: `Cannot getting ${url}, locked`};
       }
-    }else if(body.indexOf('厦门二手房')){
+    }else if(body.indexOf('厦门二手房')!=-1){
       return body;
     }else{
       throw {name: 'Crawler_MalResult', message: `Cannot getting ${url}, content is wrong`};

@@ -10,13 +10,13 @@ export class LianjiaPlotCollector extends LianjiaCollector {
       'district' : '.listContent .info .positionInfo .district', //"思明"
       'block': '.listContent .info .positionInfo .bizcircle', //"会展中心"
       'year': '.listContent .info .positionInfo',  // " / 2009年建成"
-      'page': '.page-box.house-lst-page-box'
+      'page': '.resultDes .total span' //"53"
     }
     super(html, mapping);
   }
 
   async save(){
-    const result = super.collect();    
+    const result = super.collect();
     if(!result['title'] || !result['title'].length){
       throw new Error(`LianjiaPlotCollector save error: collect html without plot ids`);
     }
@@ -41,7 +41,7 @@ export class LianjiaPlotCollector extends LianjiaCollector {
     let plotIds = await db.query(`SELECT tid from plot where tid=${obj['tid']}`);
     if(plotIds.length == 0){
       let select = `INSERT into plot (tid, name, district, block, age)
-        VALUES(${obj.tid},"${obj.name}","${obj.district}","${obj.block}","${this.age}")`;
+        VALUES(${obj.tid},"${obj.name}","${obj.district}","${obj.block}","${obj.age}")`;
       logger.debug(select);
       db.query(select).then((plot) =>{
         logger.log(`insert successfully ${obj.tid}`);
@@ -57,7 +57,8 @@ export class LianjiaPlotCollector extends LianjiaCollector {
     let result = '';
     try{
       let parts = text.split('/');
-      result = parseInt(parts[parts.length -1].trim());
+
+      result = parseInt(parts[parts.length -1].replace( /^\D+/g, ''));
       if(isNaN(result)){
         result='';
       }

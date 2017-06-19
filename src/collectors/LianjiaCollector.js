@@ -10,8 +10,8 @@ export class LianjiaCollector extends Collector {
 
   getTotalPage(){
     let result = super.collect();
-    let pageData = JSON.parse(result['page'].last().attr('page-data'));
-    return pageData.totalPage;
+    let totalCount = parseInt(result['page'].text());
+    return Math.ceil(totalCount/30);
   }
 
   _getId(url=''){
@@ -24,6 +24,10 @@ export class LianjiaCollector extends Collector {
         return;
       }
     });
-    return urlPart.indexOf('.') >= 0 ? urlPart.substring(0, urlPart.indexOf('.')) : urlPart;
+    let id = urlPart.indexOf('.') >= 0 ? urlPart.substring(0, urlPart.indexOf('.')) : urlPart;
+    if(!Number.isInteger(id)){
+      id = parseInt(id.replace(/^\D+/g, ''));
+    }
+    return id;
   }
 }
