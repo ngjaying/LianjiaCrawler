@@ -1,4 +1,4 @@
-import {LianjiaCollector} from '../collectors/LianjiaCollector';
+import {LianjiaHouseCollector} from '../collectors/LianjiaHouseCollector';
 import logger from '../utils/logger';
 //data
 let html = `
@@ -2173,7 +2173,7 @@ require(['ershoufang/sellList/index'], function (main) {
 `;
 const main = async ()=>{
   logger.enableDebug();
-  let LC = new LianjiaCollector();
+  let LC = new LianjiaHouseCollector();
   LC.setHtml(html);
   let page = LC.getTotalPage();
   logger.debug(page);

@@ -50,11 +50,12 @@ CREATE TABLE IF NOT EXISTS `plot` (
 --
 
 CREATE TABLE IF NOT EXISTS `deal` (
-  `id` int(16) NOT NULL,
+  `houseid` bigint(31) NOT NULL,
   `dealtime` datetime NOT NULL,
   `price` int(11) NOT NULL,
   `unitprice` int(11) NOT NULL,
-  `targetprice` int(11) DEFAULT '0'
+  `targetprice` int(11) DEFAULT '0',
+  `period` int(5),
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
