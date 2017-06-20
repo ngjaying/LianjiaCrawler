@@ -71,7 +71,7 @@ export class LianjiaDistributor extends Distributor{
   async _doRun(){
     let url;
     try{
-      logger.debug(`${this.page}/${this.totalPage}`);
+      logger.debug(`New run for page status ${this.page}/${this.totalPage}`);
       if (this.totalPage >= 0 && this.page > this.totalPage) {
           if(this.crawlType == 0){ //翻区
             this.page = 1;
@@ -94,7 +94,7 @@ export class LianjiaDistributor extends Distributor{
           //Redo once for fail urls
           for(let failUrl in failUrls){
             this.failUrls.pop();
-            await this.process(failUrl);
+            await this.process(failUrl, false);
           }
           if(this.failUrls.length > 0){
             logger.error(`Still have ${this.failUrls.length} fails`, {from: `LianjiaDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})
@@ -113,19 +113,21 @@ export class LianjiaDistributor extends Distributor{
           this.districtPage = 0;
         }else{
           logger.debug(`Already crawl all types`);
-          if(this.isContinue){
-            await db.query(`UPDATE crawlprogress SET type = ${this.crawlType}, dc = 6 where date = "${CommonUtil.formatDate(new Date())}"`);
-          }else{
-            await db.query(`INSERT into crawlprogress (type, dc, page, date) VALUES (${this.crawlType}, 6, 1, "${CommonUtil.formatDate(new Date())}") `);
-          }
+          await this._saveProgress();
           return;
         }
       }
       url = this._getUrl(this.crawlType, this.page, this.districtPage);
       await this.process(url);
-      this.page++;
     }catch(ex){
-      await this.handleError(ex);
+      //没有被process catch，说明代理也无法获取网页
+      if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
+        logger.debug(`Blocked, save progress and exit`);
+        await this._saveProgress();
+        return;
+      }
+      this.failUrls.push(url);
+      logger.log(ex);
     }
     let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
     logger.debug(sleepTime);
@@ -151,11 +153,26 @@ export class LianjiaDistributor extends Distributor{
     return crawlType;
   }
 
-  async process(url){
+  async _saveProgress(){
+    if(this.isContinue){
+      await db.query(`UPDATE crawlprogress SET type = ${this.crawlType}, dc = ${this.districtPage}, page = ${this.page} where date = "${CommonUtil.formatDate(new Date())}"`);
+    }else{
+      await db.query(`INSERT into crawlprogress (type, dc, page, date) VALUES (${this.crawlType}, ${this.districtPage}, ${this.page}, "${CommonUtil.formatDate(new Date())}")`);
+    }
+  }
+
+  async process(url, inPage=true){
     logger.debug(`crawl page ${url} of total page ${this.totalPage}`);
-    await super.process(url);
-    if(this.totalPage<0){
-      this.totalPage = this.collector.getTotalPage();
+    try{
+      await super.process(url);
+      if(inPage){
+        if(this.totalPage<0){
+          this.totalPage = this.collector.getTotalPage();
+        }
+        this.page++;
+      }
+    }catch(ex){
+      await this.handleError(ex, url);
     }
   }
 
@@ -163,13 +180,8 @@ export class LianjiaDistributor extends Distributor{
     //被屏蔽了
     if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
       logger.error(ex['name']);
-      if(this.isContinue){
-        await db.query(`UPDATE crawlprogress SET type = ${this.crawlType}, dc = ${this.districtPage}, page = ${this.page} where date = "${CommonUtil.formatDate(new Date())}"`);
-      }else{
-        await db.query(`INSERT into crawlprogress (type, dc, page, date) VALUES (${this.crawlType}, ${this.districtPage}, ${this.page}, "${CommonUtil.formatDate(new Date())}")`);
-      }
       this.proxyIndex++;
-      if(this.proxyIndex >= this.proxies.length){
+      if(this.proxyIndex > this.proxies.length){
         throw ex;
       }else{
         this.crawler.setCookie(this.proxies[this.proxyIndex-1].cookie);
@@ -183,7 +195,7 @@ export class LianjiaDistributor extends Distributor{
       logger.debug(`set total page here ${this.totalPage}`);
       this.totalPage = this.page;
     }else{
-      logger.error(ex);
+      throw ex;
     }
   }
 

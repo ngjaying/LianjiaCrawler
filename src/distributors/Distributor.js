@@ -12,16 +12,9 @@ export class Distributor {
   }
 
   async process(url){
-    try{
-      let body = await this.crawler.crawl(url);
-      this.collector.setHtml(body);
-      if(this.totalPage<=0){
-        this.totalPage = this.collector.getTotalPage();
-      }
-      await this.collector.save();
-    }catch(ex){
-      await this.handleError(ex, url);
-    }
+    let body = await this.crawler.crawl(url);
+    this.collector.setHtml(body);
+    await this.collector.save();    
   }
 
   async handleError(ex, url){
