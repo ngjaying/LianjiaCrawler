@@ -20,7 +20,7 @@ const main = () => {
           nextStartTime = new Date().getTime() + 1000;
       if (argv.indexOf('-db') != -1)//加参数-db则显示调试代码(DeBug)
           logger.enableDebug();
-      if(arv.indexOf('-n') != -1) //全新运行
+      if(argv.indexOf('-n') != -1) //全新运行
         isNew = true;
   }
 

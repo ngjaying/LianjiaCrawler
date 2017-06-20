@@ -54,6 +54,10 @@ export class LianjiaDistributor extends Distributor{
       this.crawlType = progress[0].type;
       logger.log(`Resume from ${this.crawlType} in district ${this.districtPage} of page ${this.page}`);
     }
+    if(this.crawlType<0){
+      logger.log('Already finish all crawl today');
+      return;
+    }
     this._getNextCrawl(this.crawlType);
     if(this.crawlType == 0){
       if(this.isNew){
