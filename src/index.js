@@ -6,6 +6,7 @@ import {LianjiaDistributor} from './distributors/LianjiaDistributor';
 
 let nextStartTime;//下次执行任务的具体时间
 let isMainTaskRunning = false;
+let isNew = false;
 let taskStartTime = '02:05:00';//任务将于每天此时间开始
 const main = () => {
   //logger.enableDebug();
@@ -19,6 +20,8 @@ const main = () => {
           nextStartTime = new Date().getTime() + 1000;
       if (argv.indexOf('-db') != -1)//加参数-db则显示调试代码(DeBug)
           logger.enableDebug();
+      if(arv.indexOf('-n') != -1) //全新运行
+        isNew = true;
   }
 
   if (!nextStartTime) {
@@ -29,22 +32,22 @@ const main = () => {
   }
   logger.log(`First task will start at ${(new Date(nextStartTime)).toLocaleString()}`);
 
-  maintask();
+  maintask(isNew);
 }
 
 
-const maintask = async () => {
+const maintask = async (isNew) => {
   //满足以下三种条件之一时继续等待
   //1.当前运行中  2.时间未到
   if (isMainTaskRunning || new Date().getTime() < nextStartTime) {
-      setTimeout(maintask, 1000);
+      setTimeout(()=>maintask(isNew), 1000);
       return;
   }
   //任务开始
   isMainTaskRunning = true;
   logger.log('Main Task start.');
   let tasks = [];
-  let LD = new LianjiaDistributor();
+  let LD = new LianjiaDistributor(isNew);
   tasks.push(runTask(LD));
   try{
     await Promise.all(tasks);
@@ -52,7 +55,7 @@ const maintask = async () => {
     //Should not happen here
     logger.error(`Error happens in promise all tasks ${ex}`);
   }
-  process.nextTick(maintask);
+  process.nextTick(()=>maintask(isNew));
 }
 
 const runTask = async (distributor) => {

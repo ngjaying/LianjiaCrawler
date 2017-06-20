@@ -18,7 +18,7 @@ export class LianjiaDistributor extends Distributor{
     this.crawler.setCookie(`lianjia_uuid=15e2f095-d460-49eb-86ce-af527a684e97; UM_distinctid=15ab752b2a34ae-03b0601076ca74-67f1a39-1fa400-15ab752b2a498c; _csrf=5f0636a97e4aee71b6c7288607413a89ea1f87ab68df51fff1dbaf9d9e2576c6a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%224a8lTQwf-OEux2r1EtR9bOJB_aoHWH3a%22%3B%7D; app_matrix_servers=e8d6171c1ec6a632142fec1ca24ccfa9; select_city=350200; _smt_uid=58c262fe.51c1f618; _ga=GA1.2.1749135290.1489134336; _gid=GA1.2.1615422921.1497167865; lianjia_ssid=c2f1438d-4538-4323-84c9-109fabd46d7b`);
     this.districts = ['xiangan', 'tongan', 'jimei', 'haicang', 'huli', 'siming'];
     this.districtNames = ['翔安', '同安', '集美', '海沧', '湖里', '思明'];
-    this.totalPage = 0;
+    this.totalPage = -1;
     this.proxyIndex = 0;
     this.completed = false;
     //TODO Proxy and cookie setting
@@ -54,24 +54,24 @@ export class LianjiaDistributor extends Distributor{
       this.crawlType = progress[0].type;
       logger.log(`Resume from ${this.crawlType} in district ${this.districtPage} of page ${this.page}`);
     }
+    this._getNextCrawl(this.crawlType);
     if(this.crawlType == 0){
       if(this.isNew){
         this.isNew = false;
       }
       this.collector.setDistrict(this.districtNames[this.districtPage]);
     }
-    this._getNextCrawl(this.crawlType);
     await this._doRun();
   }
 
   async _doRun(){
     let url;
     try{
-      if (this.totalPage > 0 && this.page > this.totalPage) {
-          logger.debug(`${this.page}/${this.totalPage}`);
+      logger.debug(`${this.page}/${this.totalPage}`);
+      if (this.totalPage >= 0 && this.page > this.totalPage) {
           if(this.crawlType == 0){ //翻区
             this.page = 1;
-            this.totalPage = 0;
+            this.totalPage = -1;
             this.districtPage++;
             if(this.districtPage >= this.districts.length){
               this.completed = true;
@@ -105,7 +105,7 @@ export class LianjiaDistributor extends Distributor{
         if(this.crawlType >= 0){
           //init again
           this.page = 1;
-          this.totalPage = 0;
+          this.totalPage = -1;
           this.districtPage = 0;
         }else{
           logger.debug(`Already crawl all types`);
@@ -130,7 +130,7 @@ export class LianjiaDistributor extends Distributor{
   }
 
   _getNextCrawl(crawlType){
-    if(!crawlType){
+    if(crawlType == null){
       if(this.crawlType == 1){
         crawlType = 0;
       }else if(this.crawlType == 0){
@@ -150,7 +150,7 @@ export class LianjiaDistributor extends Distributor{
   async process(url){
     logger.debug(`crawl page ${url} of total page ${this.totalPage}`);
     await super.process(url);
-    if(this.totalPage<=0){
+    if(this.totalPage<0){
       this.totalPage = this.collector.getTotalPage();
     }
   }
@@ -173,8 +173,11 @@ export class LianjiaDistributor extends Distributor{
         try{
           await this.crawler.crawl(this.proxies[this.proxyIndex-1].url);
         }catch(ex){}
-        await this._doRun();
       }
+    }else if(ex.name == 'MSG_STOP_CRAWL'){
+      // Set total page less than current page to stop crawling this type
+      logger.debug(`set total page here ${this.totalPage}`);
+      this.totalPage = this.page;
     }else{
       logger.error(ex);
     }

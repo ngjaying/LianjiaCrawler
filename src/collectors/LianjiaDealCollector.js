@@ -24,14 +24,24 @@ export class LianjiaDealCollector extends LianjiaCollector {
       throw new Error(`LianjiaDealCollector save error: collect html without house ids`);
     }
     let pageSize = result['houseid'].length;
+    let preDealtimes = await db.query('SELECT dealtime from deal order by dealtime desc limit 0,1');
+    let preDealtime = null;
+    if(preDealtimes.length > 0){
+      preDealtime = new Date(preDealtimes[0].dealtime);
+      logger.debug(`Got existing dealtime ${preDealtime}`);
+    }
     for(let i=0;i<pageSize;i++){
       try{
         let obj = {};
+        let dealDate = new Date(Date.parse(result['dealdate'].eq(i).text()));
+        if(preDealtime && preDealtime > dealDate && !CommonUtil.compareDate(preDealtime, dealDate)){
+          throw {name: 'MSG_STOP_CRAWL', message: `Already crawl up do date ${preDealtime}`};
+        }
         obj['houseid'] = this._getId(result['houseid'].eq(i).attr('href'));
         obj['price'] = result['price'].eq(i).text();
         obj['unitprice'] = result['unitprice'].eq(i).text();
         this._saveHouse(Object.assign({}, obj), result, i);
-        obj['dealtime'] = CommonUtil.formatDate(new Date(Date.parse(result['dealdate'].eq(i).text())));
+        obj['dealtime'] = CommonUtil.formatDate(dealDate);
         let cycleInfo = this._getCycleInfo(result['cycle'].eq(i).text());
         obj['targetprice'] = cycleInfo['targetprice'];
         obj['period'] = cycleInfo['period'];
@@ -49,6 +59,7 @@ export class LianjiaDealCollector extends LianjiaCollector {
           logger.debug(`House deal for ${obj.houseid} already exist`);
         }
       }catch(ex){
+        if(ex['name'] == 'MSG_STOP_CRAWL') throw ex;
         logger.error(`LianjiaDealCollector save error for index ${i}: ${ex}`, {from: `LianjiaDealCollector`, code: '1001', msg: ex});
       }
     }
