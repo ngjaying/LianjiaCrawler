@@ -3,6 +3,8 @@ import logger from './utils/logger';
 import db from './utils/db';
 import crawler from './crawler';
 import {LianjiaDistributor} from './distributors/LianjiaDistributor';
+import {XMCDistributor} from './distributors/XMCDistributor';
+import {XMLDistributor} from './distributors/XMLDistributor';
 
 let nextStartTime;//下次执行任务的具体时间
 let isMainTaskRunning = false;
@@ -49,6 +51,10 @@ const maintask = async (isNew) => {
   let tasks = [];
   let LD = new LianjiaDistributor(isNew);
   tasks.push(runTask(LD));
+  let XMCD = new XMCDistributor();
+  tasks.push(runTask(XMCD));
+  let XMLD = new XMLDistributor();
+  tasks.push(runTask(XMLD));
   try{
     await Promise.all(tasks);
   }catch(ex){

@@ -46,13 +46,13 @@ export class XMListCollector extends Collector {
         logger.error(`Error when insert house ${obj.houseid}, will ignore it`, {from: `XMListCollector DB`, code: '1002', msg: err});
       });
     }else{
-      logger.debug(`Got existing house ${updatedate[0].lastupdatedate}`);
-      if(CommonUtil.compareDate(new Date(), new Date(historys[0].date))){
+      logger.debug(`Got existing house ${updatedate[0].lastupdateddate}`);
+      if(CommonUtil.compareDate(new Date(), new Date(updatedate[0].lastupdateddate))){
         logger.debug(`compare equal`);
       }else{
         logger.debug(`compare not equal`);
         //run update
-        let sqlstr = `UPDATE xmhouse set lastupdatedate = "${CommonUtil.formatDate(new Date())}" where houseid=${obj['houseid']}`;
+        let sqlstr = `UPDATE xmhouse set lastupdateddate = "${CommonUtil.formatDate(new Date())}" where houseid=${obj['houseid']}`;
         logger.debug(sqlstr);
         db.query(sqlstr).then(() =>{
           logger.log(`update successfully ${obj.houseid}`);
