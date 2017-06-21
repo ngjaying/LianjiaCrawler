@@ -58,7 +58,7 @@ export class LianjiaPlotCollector extends LianjiaCollector {
     try{
       let parts = text.split('/');
 
-      result = parseInt(parts[parts.length -1].replace( /^\D+/g, ''));
+      result = CommonUtil.convertStringToInt(parts[parts.length -1]);
       if(isNaN(result)){
         result='';
       }

@@ -105,3 +105,19 @@ CREATE TABLE IF NOT EXISTS `crawlprogress` (
   `page` int(5) NOT NULL,
   `date` datetime NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+-- --------------------------------------------------------
+
+--
+-- Struct of table `housesummary`
+--
+
+CREATE TABLE IF NOT EXISTS `housesummary` (
+  `date` datetime NOT NULL,
+  `totalproperty` INT(7) NOT NULL,
+  `approvecount` int(10) NOT NULL,
+  `salecount` int(7) NOT NULL,
+  `approvearea` int(15) NOT NULL,
+  `salearea` int(15) NOT NULL,
+  `soldcount` int(7) NOT NULL,
+  `soldarea` int(15) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;

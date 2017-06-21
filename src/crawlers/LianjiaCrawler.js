@@ -12,7 +12,6 @@ export class LianjiaCrawler extends Crawler{
   async crawl(url){
     this._reqOptions.url = url;
     let body = await req.get(this._reqOptions);
-    debugger
     if(body.indexOf('流量异常')!=-1){
       if(await this._verifyHuman(body)){
         return await this.crawl(url);

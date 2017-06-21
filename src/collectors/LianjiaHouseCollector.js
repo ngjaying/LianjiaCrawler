@@ -35,7 +35,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
         let obj = {};
         obj['houseid'] = this._getId(result['houseid'].eq(i).attr('href'));
         obj['price'] = result['price'].eq(i).text();
-        obj['unitprice'] = parseInt(result['unitprice'].eq(i).text().replace( /^\D+/g, '')) || 0;
+        obj['unitprice'] = CommonUtil.convertStringToInt(result['unitprice'].eq(i).text()) || 0;
         obj['plotid'] = this._getId(result['plot'].eq(i).attr('href'));
         obj['plotname'] = result['plot'].eq(i).text().trim();
         obj['block'] = result['block'].eq(i).text().trim();
@@ -94,7 +94,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
   _getVisit(text){
     let result = 0;
     try{
-      result = parseInt(text.split('/')[1].replace( /^\D+/g, '')) || 0;
+      result = CommonUtil.convertStringToInt(text.split('/')[1]) || 0;
     }catch(ex){
       logger.error(ex);
     }
@@ -120,7 +120,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
     try{
       let parts = text.split(/\(|\)/);
       result.storey = parts[0].trim();
-      result.totalstorey = parseInt(parts[1].replace( /^\D+/g, ''));
+      result.totalstorey = CommonUtil.convertStringToInt(parts[1]);
       result.houseyear = parseInt(parts[2]) || '';
     }catch(ex){
       logger.error(ex);

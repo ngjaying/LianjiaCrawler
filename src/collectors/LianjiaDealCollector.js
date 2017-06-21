@@ -34,7 +34,7 @@ export class LianjiaDealCollector extends LianjiaCollector {
       try{
         let obj = {};
         let dealDate = new Date(Date.parse(result['dealdate'].eq(i).text()));
-        if(preDealtime && preDealtime > dealDate && !CommonUtil.compareDate(preDealtime, dealDate)){
+        if(preDealtime && preDealtime > dealDate){
           throw {name: 'MSG_STOP_CRAWL', message: `Already crawl up do date ${preDealtime}`};
         }
         obj['houseid'] = this._getId(result['houseid'].eq(i).attr('href'));
@@ -90,8 +90,8 @@ export class LianjiaDealCollector extends LianjiaCollector {
     let result = {targetprice: 0, period: 0};
     try{
       let parts = text.split('万');
-      let targetprice = parseInt(parts[0].replace(/^\D+/g, ''));
-      let period = parseInt(parts[1].replace(/^\D+/g, ''));
+      let targetprice = CommonUtil.convertStringToInt(parts[0]);
+      let period = CommonUtil.convertStringToInt(parts[1]);
       result.targetprice = isNaN(targetprice) ? 0 : targetprice;
       result.period = isNaN(period) ? 0 : period;
     }catch(ex){
@@ -117,7 +117,7 @@ export class LianjiaDealCollector extends LianjiaCollector {
     try{
       let parts = text.split(/\(|\)/);
       result.storey = parts[0].trim();
-      result.totalstorey = parseInt(parts[1].replace( /^\D+/g, ''));
+      result.totalstorey = CommonUtil.convertStringToInt(parts[1]);
       result.houseyear = parseInt(parts[2]) || '';
     }catch(ex){
       logger.error(ex);

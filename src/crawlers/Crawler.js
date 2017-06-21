@@ -1,5 +1,5 @@
 export class Crawler{
-  
+
   constructor(cookie){
     this._reqOptions = {
       headers: {
@@ -18,5 +18,11 @@ export class Crawler{
 
   setCookie(cookie){
     this._reqOptions.headers['cookie'] = cookie;
+  }
+
+  async crawl(url){
+    this._reqOptions.url = url;
+    let body = await req.get(this._reqOptions);
+    return body;
   }
 }

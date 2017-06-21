@@ -1,6 +1,5 @@
 import {Collector} from './Collector';
 import logger from '../utils/logger';
-import db from '../utils/db';
 import CommonUtil from '../utils/CommonUtil';
 
 export class LianjiaCollector extends Collector {
@@ -26,7 +25,7 @@ export class LianjiaCollector extends Collector {
     });
     let id = urlPart.indexOf('.') >= 0 ? urlPart.substring(0, urlPart.indexOf('.')) : urlPart;
     if(!Number.isInteger(id)){
-      id = parseInt(id.replace(/^\D+/g, ''));
+      id = CommonUtil.convertStringToInt(id);
     }
     return id;
   }
