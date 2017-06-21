@@ -14,7 +14,7 @@ export class Distributor {
   async process(url){
     let body = await this.crawler.crawl(url);
     this.collector.setHtml(body);
-    await this.collector.save();    
+    await this.collector.save();
   }
 
   async handleError(ex, url){

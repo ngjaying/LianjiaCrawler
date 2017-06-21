@@ -20,6 +20,7 @@ export class LianjiaDistributor extends Distributor{
     this.districtNames = ['翔安', '同安', '集美', '海沧', '湖里', '思明'];
     this.totalPage = -1;
     this.proxyIndex = 0;
+    //Complete current crawl type
     this.completed = false;
     //TODO Proxy and cookie setting
     this.proxies = [
