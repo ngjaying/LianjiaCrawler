@@ -38,7 +38,7 @@ export class XMSummaryCollector extends Collector {
         logger.error(`Error when insert housesummary ${obj.date}, will ignore it`);
       });
     }else{
-      logger.log(`Already crawl summary for ${obj.date}`)
+      logger.log(`Already crawl summary for ${obj.date}`);
     }
   }
 

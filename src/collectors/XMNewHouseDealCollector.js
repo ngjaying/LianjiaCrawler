@@ -35,7 +35,7 @@ export class XMNewHouseDealCollector extends Collector {
         logger.error(`Error when insert newhousedeal ${obj.district}, will ignore it`);
       });
     }else{
-      logger.log(`Already crawl new house deal for ${obj.district}`)
+      logger.log(`Already crawl new house deal for ${obj.district}`);
     }
   }
 
