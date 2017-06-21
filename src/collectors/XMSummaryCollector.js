@@ -25,7 +25,7 @@ export class XMSummaryCollector extends Collector {
       Object.assign(obj, this._getTd1(result['all'].eq(1).html()));
       this._saveSummary(Object.assign({}, obj));
     }catch(ex){
-      logger.error(`LianjiaPlotCollector save error ${ex}`, {from: `XMSummaryCollector`, code: '1001', msg: ex});
+      logger.error(`XMSummaryCollector save error ${ex}`, {from: `XMSummaryCollector`, code: '1001', msg: ex});
     }
   }
 

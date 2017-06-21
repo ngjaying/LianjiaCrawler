@@ -121,3 +121,16 @@ CREATE TABLE IF NOT EXISTS `housesummary` (
   `soldcount` int(7) NOT NULL,
   `soldarea` int(15) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Struct of table `newhousedeal`
+--
+
+CREATE TABLE IF NOT EXISTS `newhousedeal` (
+  `date` datetime NOT NULL,
+  `district` varchar(4) DEFAULT NULL,
+  `housecount` int(7) NOT NULL,
+  `housearea` int(15) NOT NULL,
+  `totalcount` int(7) NOT NULL,
+  `totalarea` int(15) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
