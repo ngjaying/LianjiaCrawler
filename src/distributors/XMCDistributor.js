@@ -15,7 +15,16 @@ export class XMCDistributor extends Distributor{
   }
 
   async run(){
-    await this._doRun();
+    let hour = CommonUtil.getHour();
+    if(hour > 18){
+      await this._doRun();
+    }else{
+      logger.debug(`XMCDistributor will only run after 18:00, run after ${18-hour} hours`);
+      return new Promise(resolve => setTimeout(async ()=>{
+        await this.run();
+        resolve();
+      }, (18 - hour) * 3600 * 1000));
+    }
   }
 
   async _doRun(){
