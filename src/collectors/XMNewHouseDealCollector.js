@@ -16,13 +16,14 @@ export class XMNewHouseDealCollector extends Collector {
     if(!result['td'] || !result['td'].length){
       throw new Error(`XMNewHouseDealCollector save error: collect html without data`);
     }
-    try{
-      for(let i = 1;i<=6;i++){
+
+    for(let i = 1;i<=6;i++){
+      try{
         this._saveDeal(Object.assign({}, this._getTd(result['td'], i)));
+      }catch(ex){
+        logger.error(`XMNewHouseDealCollector save error ${ex}`, {from: `XMNewHouseDealCollector`, code: '1001', msg: ex});
       }
-    }catch(ex){
-      logger.error(`XMNewHouseDealCollector save error ${ex}`, {from: `XMNewHouseDealCollector`, code: '1001', msg: ex});
-    }
+    }    
   }
 
   async _saveDeal(obj){
