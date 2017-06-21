@@ -1,3 +1,4 @@
+import req from 'request-promise';
 export class Crawler{
 
   constructor(cookie){

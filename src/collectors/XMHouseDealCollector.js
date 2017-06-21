@@ -33,10 +33,10 @@ export class XMHouseDealCollector extends Collector {
       let sqlstr = `INSERT into housedeal (date, housecount, housearea, totalcount, totalarea) VALUES("${date}",${obj.housecount}, ${obj.housearea}, ${obj.totalcount}, ${obj.totalarea})`;
       logger.debug(sqlstr);
       db.query(sqlstr).catch(err =>{
-        logger.error(`Error when insert deal ${obj.date}, will ignore it`);
+        logger.error(`Error when insert deal ${obj.houseid}, will ignore it`);
       });
     }else{
-      logger.log(`Already crawl deal for ${obj.date}`);
+      logger.log(`Already crawl deal for ${obj.houseid}`);
     }
   }
 
