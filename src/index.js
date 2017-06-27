@@ -57,10 +57,12 @@ const maintask = async (isNew) => {
   tasks.push(runTask(XMLD));
   try{
     await Promise.all(tasks);
+    logger.debug('ALL DONE!');
   }catch(ex){
     //Should not happen here
     logger.error(`Error happens in promise all tasks ${ex}`);
   }
+  logger.summary();
   process.nextTick(()=>maintask(isNew));
 }
 
@@ -68,14 +70,13 @@ const runTask = async (distributor) => {
   logger.log('Run task');
   let retry = false;
   try{
-    await distributor.run();
+    retry = await distributor.run();
   }catch(ex){
     logger.error(`Error happens, will run later ${ex}`);
     retry = true;
   }
-  return;
   if(retry){
-    let delay = 300000 * 12;
+    let delay = 300000;
     return new Promise((resolve) => {
       let timer1 = setInterval(async ()=>{
         try{

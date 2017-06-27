@@ -23,19 +23,25 @@ export class XMLDistributor extends Distributor{
           logger.error(`Still have ${this.failUrls.length} fails`, {from: `XMCDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})
         }
         logger.debug(`Already crawl all XMList`);
-        return;
+        return false;
       }
       url = this._getUrl(this.page);
       await this.process(url);
     }catch(ex){
-      this.failUrls.push(url);
-      logger.log(ex);
+      if(ex.name == 'MSG_STOP_CRAWL'){
+        // Set total page less than current page to stop crawling this type
+        logger.debug(`set total page here ${this.totalPage}`);
+        this.totalPage = this.page;
+      }else{
+        this.failUrls.push(url);
+        logger.log(ex);
+      }
     }
     this.page++;
     let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
     logger.debug(sleepTime);
     await CommonUtil.sleep(sleepTime);
-    await this.run();
+    return await this.run();
   }
 
   async process(url){

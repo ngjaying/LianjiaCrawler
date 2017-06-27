@@ -21,8 +21,9 @@ export class XMListCollector extends Collector {
     let pageSize = Math.floor(result['tds'].length/6);
     for(let i=0;i<pageSize;i++){
       try{
-        this._saveHouse(Object.assign({}, this._getTd(result['tds'], i)));
+        await this._saveHouse(Object.assign({}, this._getTd(result['tds'], i)));
       }catch(ex){
+        if(ex['name'] == 'MSG_STOP_CRAWL') throw ex;
         logger.error(`XMListCollector save error for index ${i}: ${ex}`, {from: `XMListCollector`, code: '1001', msg: ex});
       }
     }
@@ -49,6 +50,7 @@ export class XMListCollector extends Collector {
       logger.debug(`Got existing house ${updatedate[0].lastupdateddate}`);
       if(CommonUtil.compareDate(new Date(), new Date(updatedate[0].lastupdateddate))){
         logger.debug(`compare equal`);
+        throw {name: 'MSG_STOP_CRAWL', message: `XMList already crawl up do date`};
       }else{
         logger.debug(`compare not equal`);
         //run update

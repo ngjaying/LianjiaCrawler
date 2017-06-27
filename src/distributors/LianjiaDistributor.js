@@ -57,7 +57,7 @@ export class LianjiaDistributor extends Distributor{
     }
     if(this.crawlType<0){
       logger.log('Already finish all crawl today');
-      return;
+      return false;
     }
     this._getNextCrawl(this.crawlType);
     if(this.crawlType == 0){
@@ -66,7 +66,7 @@ export class LianjiaDistributor extends Distributor{
       }
       this.collector.setDistrict(this.districtNames[this.districtPage]);
     }
-    await this._doRun();
+    return await this._doRun();
   }
 
   async _doRun(){
@@ -115,7 +115,7 @@ export class LianjiaDistributor extends Distributor{
         }else{
           logger.debug(`Already crawl all types`);
           await this._saveProgress();
-          return;
+          return false;
         }
       }
       url = this._getUrl(this.crawlType, this.page, this.districtPage);
@@ -125,7 +125,7 @@ export class LianjiaDistributor extends Distributor{
       if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
         logger.debug(`Blocked, save progress and exit`);
         await this._saveProgress();
-        return;
+        return true;
       }
       this.failUrls.push(url);
       logger.log(ex);
@@ -133,7 +133,7 @@ export class LianjiaDistributor extends Distributor{
     let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
     logger.debug(sleepTime);
     await CommonUtil.sleep(sleepTime);
-    await this._doRun();
+    return await this._doRun();
   }
 
   _getNextCrawl(crawlType){

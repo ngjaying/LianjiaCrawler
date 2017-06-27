@@ -16,13 +16,12 @@ export class XMCDistributor extends Distributor{
 
   async run(){
     let hour = CommonUtil.getHour();
-    if(hour > 18){
-      await this._doRun();
+    if(hour >= 18){
+      return await this._doRun();
     }else{
       logger.debug(`XMCDistributor will only run after 18:00, run after ${18-hour} hours`);
       return new Promise(resolve => setTimeout(async ()=>{
-        await this.run();
-        resolve();
+        resolve(await this.run());
       }, (18 - hour) * 3600 * 1000));
     }
   }
@@ -42,6 +41,7 @@ export class XMCDistributor extends Distributor{
     if(this.failUrls.length > 0){
       logger.error(`Still have ${this.failUrls.length} fails`, {from: `XMCDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})
     }
+    return false;
   }
 
   async process(url){
