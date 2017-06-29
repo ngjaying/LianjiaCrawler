@@ -3,10 +3,7 @@ const config = {
   all : {
     env: process.env.NODE_ENV || 'development',
     dbconfig: {
-      host: '127.0.0.1',//数据库服务器
-      user: 'root',//数据库用户名
-      password: '',//数据库密码
-      port: 3306,//数据库服务器端口
+
       poolSize: 20,
       acquireTimeout: 30000
     },
@@ -19,12 +16,20 @@ const config = {
   },
   development: {
     dbconfig: {
-      database: 'lianjia_dev'
+      host: '',//数据库服务器
+      user: '',//数据库用户名
+      password: '',//数据库密码
+      database: 'lianjia_dev',
+      port: 13687,//数据库服务器端口
     }
   },
   production: {
     dbconfig: {
-      database: 'lianjia'
+      host: '',//数据库服务器
+      user: '',//数据库用户名
+      password: '',//数据库密码
+      database: 'lianjia',
+      port: 3306,//数据库服务器端口
     }
   }
 };

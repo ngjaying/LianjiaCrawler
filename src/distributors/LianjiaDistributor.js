@@ -93,9 +93,13 @@ export class LianjiaDistributor extends Distributor{
           logger.debug(`Start crawling fail urls`);
           let failUrls = Object.assign(this.failUrls);
           //Redo once for fail urls
-          for(let failUrl in failUrls){
+          for(let index in failUrls){
             this.failUrls.pop();
-            await this.process(failUrl, false);
+            try{
+              await this.process(failUrls[index], false);
+            }catch(ex){
+              logger.error(`error during process failUrl ${failUrls[index]} of ${ex}, will ignore it`);
+            }
           }
           if(this.failUrls.length > 0){
             logger.error(`Still have ${this.failUrls.length} fails`, {from: `LianjiaDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})

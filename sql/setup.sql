@@ -1,7 +1,6 @@
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
+CREATE DATABASE `lianjia`;
 
-
+USE `lianjia`;
 --
 -- Struct of table `house`
 --
@@ -55,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `deal` (
   `price` int(11) NOT NULL,
   `unitprice` int(11) NOT NULL,
   `targetprice` int(11) DEFAULT '0',
-  `period` int(5),
+  `period` int(5)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
