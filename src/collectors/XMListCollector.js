@@ -50,7 +50,7 @@ export class XMListCollector extends Collector {
       logger.debug(`Got existing house ${updatedate[0].lastupdateddate}`);
       if(CommonUtil.compareDate(new Date(), new Date(updatedate[0].lastupdateddate))){
         logger.debug(`compare equal houseid=${obj['houseid']}`);
-        throw {name: 'MSG_STOP_CRAWL', message: `XMList already crawl up do date`};
+        //throw {name: 'MSG_STOP_CRAWL', message: `XMList already crawl up do date`};
       }else{
         logger.debug(`compare not equal`);
         //run update

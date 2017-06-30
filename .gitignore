@@ -35,3 +35,4 @@ lib
 public
 data
 src/test.js
+src/config.js

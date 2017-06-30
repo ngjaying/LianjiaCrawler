@@ -28,9 +28,6 @@ const main = () => {
 
   if (!nextStartTime) {
       nextStartTime = Date.parse(new Date().toDateString() + ' ' + taskStartTime);//默认为今天的此时间
-      while (new Date().getTime() > nextStartTime) {//如果现在已经超过此时间，则加一天后再比较
-          nextStartTime += 24 * 3600 * 1000;
-      }
   }
   logger.log(`First task will start at ${(new Date(nextStartTime)).toLocaleString()}`);
 
@@ -63,6 +60,9 @@ const maintask = async (isNew) => {
     logger.error(`Error happens in promise all tasks ${ex}`);
   }
   logger.summary();
+  //Schedule for next time
+  nextStartTime += 24 * 3600 * 1000;
+  logger.log(`Next task will start at ${(new Date(nextStartTime)).toLocaleString()}`);  
   process.nextTick(()=>maintask(isNew));
 }
 
