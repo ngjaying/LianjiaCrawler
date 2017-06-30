@@ -9,7 +9,7 @@ import {XMLDistributor} from './distributors/XMLDistributor';
 let nextStartTime;//下次执行任务的具体时间
 let isMainTaskRunning = false;
 let isNew = false;
-let taskStartTime = '02:05:00';//任务将于每天此时间开始
+let taskStartTime = '18:05:00';//任务将于每天此时间开始
 const main = () => {
   //logger.enableDebug();
   //处理传入参数
@@ -30,7 +30,6 @@ const main = () => {
       nextStartTime = Date.parse(new Date().toDateString() + ' ' + taskStartTime);//默认为今天的此时间
   }
   logger.log(`First task will start at ${(new Date(nextStartTime)).toLocaleString()}`);
-
   maintask(isNew);
 }
 
