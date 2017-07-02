@@ -58,6 +58,7 @@ const maintask = async (isNew) => {
     //Should not happen here
     logger.error(`Error happens in promise all tasks ${ex}`);
   }
+  isMainTaskRunning = false;
   logger.summary();
   //Schedule for next time
   nextStartTime += 24 * 3600 * 1000;
