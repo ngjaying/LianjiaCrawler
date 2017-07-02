@@ -91,19 +91,21 @@ export class LianjiaDistributor extends Distributor{
       if(this.completed){
         if(this.failUrls.length > 0){
           logger.debug(`Start crawling fail urls`);
-          let failUrls = Object.assign(this.failUrls);
+          let failUrls = this.failUrls.slice();
           //Redo once for fail urls
-          for(let index in failUrls){
-            this.failUrls.pop();
+          for(let failUrl of failUrls){            
             try{
-              await this.process(failUrls[index], false);
+              let url = this._getUrl(failUrl);
+              await this.process(url, false);
+              this.failUrls.pop();
             }catch(ex){
-              logger.error(`error during process failUrl ${failUrls[index]} of ${ex}, will ignore it`);
+              logger.error(`error during process failUrl ${url} of ${ex}, will ignore it`);
             }
           }
           if(this.failUrls.length > 0){
             logger.error(`Still have ${this.failUrls.length} fails`, {from: `LianjiaDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})
           }
+          this.failUrls = [];
         }
         logger.debug(`Already crawl ${this.crawlType}`);
         if(this.crwalType == 1){
@@ -122,7 +124,7 @@ export class LianjiaDistributor extends Distributor{
           return false;
         }
       }
-      url = this._getUrl(this.crawlType, this.page, this.districtPage);
+      url = this._getUrl({crawlType:this.crawlType, page:this.page, dp:this.districtPage});
       await this.process(url);
     }catch(ex){
       //没有被process catch，说明代理也无法获取网页
@@ -131,7 +133,10 @@ export class LianjiaDistributor extends Distributor{
         await this._saveProgress();
         return true;
       }
-      this.failUrls.push(url);
+      //TODO get the real url here? 
+      //Skip this page to failUrls for later retry           
+      this.failUrls.push({crawlType: this.crawlType, page: this.page, dp: this.districtPage});
+      this.page++;
       logger.log(ex);
     }
     let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
@@ -204,7 +209,7 @@ export class LianjiaDistributor extends Distributor{
     }
   }
 
-  _getUrl(crawlType, page, dp){
+  _getUrl({crawlType, page, dp}){
     let url;
     if(crawlType == 0){
       url = `http://xm.lianjia.com/ershoufang/${this.districts[dp]}/pg${page}co32ng1nb1`;
