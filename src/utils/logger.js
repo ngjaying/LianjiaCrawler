@@ -47,6 +47,7 @@ let logger = {
       console.log('Run logger summary with errors');
       let body = `今日有以下错误，请重视:<br/>${JSON.stringify(fatalErrors)}`;
       sendMail(`今日汇报-有错误`, body);
+      fatalErrors = [];
     }else{
       console.log('Run logger summary without errors');
       sendMail(`今日汇报-正常运行`, '今日无错误');
