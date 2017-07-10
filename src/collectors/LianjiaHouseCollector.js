@@ -81,16 +81,23 @@ export class LianjiaHouseCollector extends LianjiaCollector {
 
   async _saveHouse(obj, result, i){
     let houses = await db.query(`SELECT image from house where tid=${obj['houseid']}`);
-    if(houses.length == 0 || !houses[0].image){
+    if(houses.length == 0 || (!houses[0].image && obj.image)){
       let houseInfo = this._getHouseInfo(result['house'].eq(i).text());
       let positionInfo = this._getPositionInfo(result['position'].eq(i).text());
       obj = Object.assign(obj, houseInfo);
       obj = Object.assign(obj, positionInfo);
-
-      let select = `INSERT into house (tid, area, plotid, plotname, district, block, image, huxing, storey, totalstorey, orientation, decoration,houseyear)
+      let sql = '';
+      if(houses.length == 0){
+        sql = `INSERT into house (tid, area, plotid, plotname, district, block, image, huxing, storey, totalstorey, orientation, decoration,houseyear)
         VALUES(${obj.houseid},${obj.area},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${obj.image}","${obj.huxing}","${obj.storey}",${obj.totalstorey},"${obj.orientation}","${obj.decoration}","${obj.houseyear}")`;
-      logger.debug(select);
-      db.query(select).then((house) =>{
+      }else{
+        sql = `UPDATE house set area=${obj.area},plotid=${obj.plotid},plotname="${obj.plotname}",
+        district="${this.district}",block="${obj.block}",image="${obj.image}",huxing="${obj.huxing}",storey="${obj.storey}",
+        totalstorey=${obj.totalstorey},orientation="${obj.orientation}",decoration="${obj.decoration}",houseyear="${obj.houseyear}"
+        where tid=${obj.houseid}`;
+      }      
+      logger.debug(sql);
+      db.query(sql).then((house) =>{
         logger.debug(`insert successfully ${obj.houseid}`);
       }).catch(err =>{
         logger.error(`Error when insert house ${obj.houseid}, will ignore it`, {from: `LianjiaHouseCollector DB`, code: '1002', msg: err});
