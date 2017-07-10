@@ -212,11 +212,11 @@ export class LianjiaDistributor extends Distributor{
   _getUrl({crawlType, page, dp}){
     let url;
     if(crawlType == 0){
-      url = `http://xm.lianjia.com/ershoufang/${this.districts[dp]}/pg${page}co32ng1nb1`;
+      url = `http://xm.lianjia.com/ershoufang/${this.districts[dp]}/pg${page}co32ng1nb1sf1`;
     }else if(crawlType == 1){
       url = `https://xm.lianjia.com/xiaoqu/pg${page}/`;
     }else if(crawlType == 2){
-      url = `https://xm.lianjia.com/chengjiao/pg${page}/`;
+      url = `https://xm.lianjia.com/chengjiao/pg${page}ng1nb1sf1/`;
     }else{
       throw "_getUrl: Invalid crawlType";
     }
