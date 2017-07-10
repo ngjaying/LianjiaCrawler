@@ -19,7 +19,7 @@ export class XMCDistributor extends Distributor{
     if(hour >= 18){
       return await this._doRun();
     }else{
-      logger.debug(`XMCDistributor will only run after 18:00, run after ${18-hour} hours`);
+      logger.log(`XMCDistributor will only run after 18:00, run after ${18-hour} hours`);
       return new Promise(resolve => setTimeout(async ()=>{
         resolve(await this.run());
       }, (18 - hour) * 3600 * 1000));
@@ -45,7 +45,7 @@ export class XMCDistributor extends Distributor{
   }
 
   async process(url){
-    logger.debug(`crawl page ${url}`);
+    logger.log(`crawl page ${url}`);
     try{
       await super.process(url);
     }catch(ex){

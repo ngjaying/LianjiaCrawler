@@ -79,7 +79,7 @@ export class LianjiaDealCollector extends LianjiaCollector {
         VALUES(${obj.houseid},${obj.area},"${obj.plotname}","${obj.huxing}","${obj.storey}",${obj.totalstorey},"${obj.orientation}","${obj.decoration}","${obj.houseyear}")`;
       logger.debug(select);
       db.query(select).then((house) =>{
-        logger.log(`insert successfully ${obj.houseid}`);
+        logger.debug(`insert successfully ${obj.houseid}`);
       }).catch(err =>{
         logger.error(`Error when insert house ${obj.houseid}, will ignore it`, {from: `LianjiaDealCollector DB`, code: '1002', msg: err});
       });

@@ -46,14 +46,14 @@ const maintask = async (isNew) => {
   logger.log('Main Task start.');
   let tasks = [];
   let LD = new LianjiaDistributor(isNew);
-  tasks.push(runTask(LD));
+  tasks.push(runTask(LD, 'Lianjia'));
   let XMCD = new XMCDistributor();
-  tasks.push(runTask(XMCD));
+  tasks.push(runTask(XMCD, 'XMC'));
   let XMLD = new XMLDistributor();
-  tasks.push(runTask(XMLD));
+  tasks.push(runTask(XMLD, 'XML'));
   try{
     await Promise.all(tasks);
-    logger.debug('ALL DONE!');
+    logger.log('ALL DONE!');
   }catch(ex){
     //Should not happen here
     logger.error(`Error happens in promise all tasks ${ex}`);
@@ -66,8 +66,8 @@ const maintask = async (isNew) => {
   process.nextTick(()=>maintask(isNew));
 }
 
-const runTask = async (distributor) => {
-  logger.log('Run task');
+const runTask = async (distributor, name) => {
+  logger.log(`Run task ${name}`);
   let retry = false;
   try{
     retry = await distributor.run();
@@ -80,7 +80,7 @@ const runTask = async (distributor) => {
     return new Promise((resolve) => {
       let timer1 = setInterval(async ()=>{
         try{
-          logger.log('Retry task');
+          logger.log(`Retry task ${name}`);
           await distributor.run();
           clearInterval(timer1);
           resolve();

@@ -72,7 +72,7 @@ export class LianjiaDistributor extends Distributor{
   async _doRun(){
     let url;
     try{
-      logger.debug(`New run for page status ${this.page}/${this.totalPage}`);
+      logger.log(`New run for page status ${this.page}/${this.totalPage}`);
       if (this.totalPage >= 0 && this.page > this.totalPage) {
           if(this.crawlType == 0){ //翻区
             this.page = 1;
@@ -90,7 +90,7 @@ export class LianjiaDistributor extends Distributor{
       //完成某个类型
       if(this.completed){
         if(this.failUrls.length > 0){
-          logger.debug(`Start crawling fail urls`);
+          logger.log(`Start crawling fail urls`);
           let failUrls = this.failUrls.slice();
           //Redo once for fail urls
           for(let failUrl of failUrls){            
@@ -107,7 +107,7 @@ export class LianjiaDistributor extends Distributor{
           }
           this.failUrls = [];
         }
-        logger.debug(`Already crawl ${this.crawlType}`);
+        logger.log(`Already crawl ${this.crawlType}`);
         if(this.crwalType == 1){
           this.isNew = false;
         }
@@ -119,7 +119,7 @@ export class LianjiaDistributor extends Distributor{
           this.totalPage = -1;
           this.districtPage = 0;
         }else{
-          logger.debug(`Already crawl all types`);
+          logger.log(`Already crawl all types`);
           await this._saveProgress();
           return false;
         }
@@ -129,7 +129,7 @@ export class LianjiaDistributor extends Distributor{
     }catch(ex){
       //没有被process catch，说明代理也无法获取网页
       if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
-        logger.debug(`Blocked, save progress and exit`);
+        logger.log(`Blocked, save progress and exit`);
         await this._saveProgress();
         return true;
       }
@@ -172,7 +172,7 @@ export class LianjiaDistributor extends Distributor{
   }
 
   async process(url, inPage=true){
-    logger.debug(`crawl page ${url} of total page ${this.totalPage}`);
+    logger.log(`crawl page ${url} of total page ${this.totalPage}`);
     try{
       await super.process(url);
       if(inPage){
@@ -202,7 +202,7 @@ export class LianjiaDistributor extends Distributor{
       }
     }else if(ex.name == 'MSG_STOP_CRAWL'){
       // Set total page less than current page to stop crawling this type
-      logger.debug(`set total page here ${this.totalPage}`);
+      logger.log(`set total page here ${this.totalPage}`);
       this.totalPage = this.page;
     }else{
       throw ex;

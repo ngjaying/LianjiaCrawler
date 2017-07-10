@@ -17,12 +17,12 @@ export class XMLDistributor extends Distributor{
   async run(){
     let url;
     try{
-      logger.debug(`New run for page status ${this.page}/${this.totalPage}`);
+      logger.log(`New run for page status ${this.page}/${this.totalPage}`);
       if (this.totalPage >= 0 && this.page > this.totalPage) {
         if(this.failUrls.length > 0){
           logger.error(`Still have ${this.failUrls.length} fails`, {from: `XMCDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})
         }
-        logger.debug(`Already crawl all XMList`);
+        logger.log(`Already crawl all XMList`);
         return false;
       }
       url = this._getUrl(this.page);
@@ -30,7 +30,7 @@ export class XMLDistributor extends Distributor{
     }catch(ex){
       if(ex.name == 'MSG_STOP_CRAWL'){
         // Set total page less than current page to stop crawling this type
-        logger.debug(`set total page here ${this.totalPage}`);
+        logger.log(`set total page here ${this.totalPage}`);
         this.totalPage = this.page;
       }else{
         this.failUrls.push(url);
@@ -45,7 +45,7 @@ export class XMLDistributor extends Distributor{
   }
 
   async process(url){
-    logger.debug(`crawl page ${url} of total page ${this.totalPage}`);
+    logger.log(`crawl page ${url} of total page ${this.totalPage}`);
     await super.process(url);
     if(this.totalPage<0){
       this.totalPage = this.collector.getTotalPage();

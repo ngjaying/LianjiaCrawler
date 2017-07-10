@@ -36,7 +36,7 @@ export class XMHouseDealCollector extends Collector {
         logger.error(`Error when insert deal ${obj.houseid}, will ignore it`);
       });
     }else{
-      logger.log(`Already crawl deal for ${obj.houseid}`);
+      logger.debug(`Already crawl deal for ${obj.houseid}`);
     }
   }
 

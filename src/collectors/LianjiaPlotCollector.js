@@ -44,7 +44,7 @@ export class LianjiaPlotCollector extends LianjiaCollector {
         VALUES(${obj.tid},"${obj.name}","${obj.district}","${obj.block}","${obj.age}")`;
       logger.debug(select);
       db.query(select).then((plot) =>{
-        logger.log(`insert successfully ${obj.tid}`);
+        logger.debug(`insert successfully ${obj.tid}`);
       }).catch(err =>{
         logger.error(`Error when insert plot ${obj.tid}, will ignore it`, {from: `LianjiaPlotCollector DB`, code: '1002', msg: err});
       });

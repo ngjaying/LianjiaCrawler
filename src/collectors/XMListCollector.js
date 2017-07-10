@@ -42,7 +42,7 @@ export class XMListCollector extends Collector {
         VALUES(${obj.houseid},"${obj.name}","${obj.district}","${obj.block}","${obj.huxing}", ${obj.area}, ${obj.price}, "${obj.date}", "${CommonUtil.formatDate(new Date())}")`;
       logger.debug(select);
       db.query(select).then((plot) =>{
-        logger.log(`insert successfully ${obj.houseid}`);
+        logger.debug(`insert successfully for XMList House ${obj.houseid}`);
       }).catch(err =>{
         logger.error(`Error when insert house ${obj.houseid}, will ignore it`, {from: `XMListCollector DB`, code: '1002', msg: err});
       });
@@ -57,7 +57,7 @@ export class XMListCollector extends Collector {
         let sqlstr = `UPDATE xmhouse set lastupdateddate = "${CommonUtil.formatDate(new Date())}" where houseid=${obj['houseid']}`;
         logger.debug(sqlstr);
         db.query(sqlstr).then(() =>{
-          logger.log(`update successfully ${obj.houseid}`);
+          logger.debug(`update successfully ${obj.houseid}`);
         }).catch(err =>{
           logger.error(`Error when update house ${obj.houseid}, will ignore it`, {from: `XMListCollector DB`, code: '1002', msg: err});
         });

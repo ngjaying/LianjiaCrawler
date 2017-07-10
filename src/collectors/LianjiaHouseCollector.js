@@ -67,7 +67,9 @@ export class LianjiaHouseCollector extends LianjiaCollector {
         if(doInsert){
           let sqlstr = `INSERT into househistory (houseid, price, unitprice, plotid, plotname, district, block, date, visit, isnew, deltaprice) VALUES(${obj.houseid},${obj.price},${obj.unitprice},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${CommonUtil.formatDate(new Date())}",${obj.visit},${obj.isnew},${obj.deltaprice})`;
           logger.debug(sqlstr);
-          db.query(sqlstr).catch(err =>{
+          db.query(sqlstr).then(() =>{
+            logger.debug(`insert history successfully ${obj.houseid}`);
+          }).catch(err =>{
             logger.error(`Error when insert househistory ${obj.houseid}, will ignore it`);
           });
         }
@@ -89,7 +91,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
         VALUES(${obj.houseid},${obj.area},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${obj.image}","${obj.huxing}","${obj.storey}",${obj.totalstorey},"${obj.orientation}","${obj.decoration}","${obj.houseyear}")`;
       logger.debug(select);
       db.query(select).then((house) =>{
-        logger.log(`insert successfully ${obj.houseid}`);
+        logger.debug(`insert successfully ${obj.houseid}`);
       }).catch(err =>{
         logger.error(`Error when insert house ${obj.houseid}, will ignore it`, {from: `LianjiaHouseCollector DB`, code: '1002', msg: err});
       });
