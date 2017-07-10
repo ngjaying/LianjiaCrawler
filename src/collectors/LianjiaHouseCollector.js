@@ -6,6 +6,7 @@ import CommonUtil from '../utils/CommonUtil';
 export class LianjiaHouseCollector extends LianjiaCollector {
   constructor(html, district){
     let mapping = {
+      'image' : '.sellListContent .img img', //data-original "https://image1.ljcdn.com/350200-inspection/f2599b8e-8c42-4f3f-b5d3-99fb6fc7d369.jpg.232x174.jpg"
       'houseid' : '.sellListContent .title a', //"https://xm.lianjia.com/ershoufang/105100823517.html" or "https://nl.hideproxy.me/go.php?u=https%3A%2F%2Fxm.lianjia.com%2Fershoufang%2F105100737092.html&b=4"
       'price' : '.sellListContent .priceInfo .totalPrice span', //"429"
       'unitprice': '.sellListContent .priceInfo .unitPrice span', //"单价34879元/平米"
@@ -33,6 +34,10 @@ export class LianjiaHouseCollector extends LianjiaCollector {
     for(let i=0;i<pageSize;i++){
       try{
         let obj = {};
+        obj['image'] = result['image'].eq(i).attr('data-original');
+        if(obj['image'] && !obj['image'].startsWith('http')){
+          obj['image'] = 'https://image1.ljcdn.com' + obj['image'];
+        }
         obj['houseid'] = this._getId(result['houseid'].eq(i).attr('href'));
         obj['price'] = result['price'].eq(i).text();
         obj['unitprice'] = CommonUtil.convertStringToInt(result['unitprice'].eq(i).text()) || 0;
@@ -73,15 +78,15 @@ export class LianjiaHouseCollector extends LianjiaCollector {
   }
 
   async _saveHouse(obj, result, i){
-    let houseIds = await db.query(`SELECT tid from house where tid=${obj['houseid']}`);
-    if(houseIds.length == 0){
+    let houses = await db.query(`SELECT image from house where tid=${obj['houseid']}`);
+    if(houses.length == 0 || !houses[0].image){
       let houseInfo = this._getHouseInfo(result['house'].eq(i).text());
       let positionInfo = this._getPositionInfo(result['position'].eq(i).text());
       obj = Object.assign(obj, houseInfo);
       obj = Object.assign(obj, positionInfo);
 
-      let select = `INSERT into house (tid, area, plotid, plotname, district, block, huxing, storey, totalstorey, orientation, decoration,houseyear)
-        VALUES(${obj.houseid},${obj.area},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${obj.huxing}","${obj.storey}",${obj.totalstorey},"${obj.orientation}","${obj.decoration}","${obj.houseyear}")`;
+      let select = `INSERT into house (tid, area, plotid, plotname, district, block, image, huxing, storey, totalstorey, orientation, decoration,houseyear)
+        VALUES(${obj.houseid},${obj.area},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${obj.image}","${obj.huxing}","${obj.storey}",${obj.totalstorey},"${obj.orientation}","${obj.decoration}","${obj.houseyear}")`;
       logger.debug(select);
       db.query(select).then((house) =>{
         logger.log(`insert successfully ${obj.houseid}`);
