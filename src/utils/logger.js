@@ -35,7 +35,7 @@ let logger = {
   enableDebug : () => debug=true,
   disableDebug : () => debug=false,
   log: (msg) => console.log(`${new Date().toLocaleString()} - ${msg}`),
-  debug : (msg, obj) => debug && console.log(`DEBUG: ${new Date().toLocaleString()} - ${msg}`, obj),
+  debug : (msg, obj={}) => debug && console.log(`DEBUG: ${new Date().toLocaleString()} - ${msg}`, obj),
   error : (msg, fatalObj) => {
     console.log(`ERROR: ${new Date().toLocaleString()} - ${msg}`);
     if(fatalObj){

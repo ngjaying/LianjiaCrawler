@@ -46,11 +46,11 @@ const maintask = async (isNew) => {
   logger.log('Main Task start.');
   let tasks = [];
   let LD = new LianjiaDistributor(isNew);
-  tasks.push(runTask(LD, 'Lianjia'));
+  tasks.push(LD.start('Lianjia'));
   let XMCD = new XMCDistributor();
-  tasks.push(runTask(XMCD, 'XMC'));
+  tasks.push(XMCD.start('XMC'));
   let XMLD = new XMLDistributor();
-  tasks.push(runTask(XMLD, 'XML'));
+  tasks.push(XMLD.start('XML'));
   try{
     await Promise.all(tasks);
     logger.log('ALL DONE!');
@@ -64,32 +64,6 @@ const maintask = async (isNew) => {
   nextStartTime += 24 * 3600 * 1000;
   logger.log(`Next task will start at ${(new Date(nextStartTime)).toLocaleString()}`);  
   process.nextTick(()=>maintask(isNew));
-}
-
-const runTask = async (distributor, name) => {
-  logger.log(`Run task ${name}`);
-  let retry = false;
-  try{
-    retry = await distributor.run();
-  }catch(ex){
-    logger.error(`Error happens, will run later ${ex}`);
-    retry = true;
-  }
-  if(retry){
-    let delay = 300000;
-    return new Promise((resolve) => {
-      let timer1 = setInterval(async ()=>{
-        try{
-          logger.log(`Retry task ${name}`);
-          await distributor.run();
-          clearInterval(timer1);
-          resolve();
-        }catch(ex){
-          logger.error(`Error happens, will run later ${ex}`);
-        }
-      }, delay);
-    });
-  }
 }
 
 main();
