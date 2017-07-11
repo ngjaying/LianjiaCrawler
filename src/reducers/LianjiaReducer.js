@@ -99,7 +99,7 @@ export class LianjiaReducer {
         logger.debug(sql);
         sqlResult = await db.query(sql);
         lastResult = sqlResult.length > 0 ? sqlResult[0] : {};
-        console.log('last result', lastResult);
+        logger.debug('last result', lastResult);
       })(),
     ];
     await Promise.all(tasks);
@@ -142,7 +142,7 @@ export class LianjiaReducer {
         sql = `SELECT sum(newnum) as snewnum, sum(incnum) as sincnum, sum(rednum) as srednum, sum(newvisit) as snewvisit FROM ljsummary where spacerange=0 and daterange=0 and date<="${CommonUtil.formatDate(d)}" and date>="${CommonUtil.formatDate(firstDate)}";`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
-        console.log('sum result', sqlResult);
+        logger.debug('sum result', sqlResult);
         newnum = sqlResult.length > 0 ? sqlResult[0].snewnum : 0;
         incnum = sqlResult.length > 0 ? sqlResult[0].sincnum : 0;
         rednum = sqlResult.length > 0 ? sqlResult[0].srednum : 0;
@@ -152,7 +152,7 @@ export class LianjiaReducer {
         logger.debug(sql);
         sqlResult = await db.query(sql);
         lastResult = sqlResult.length > 0 ? sqlResult[0] : {};
-        console.log('last result', lastResult);
+        logger.debug('last result', lastResult);
       })(),
     ];
     await Promise.all(tasks);
@@ -187,67 +187,67 @@ export class LianjiaReducer {
         logger.debug(sql);
         sqlResult = await db.query(sql);
         salenum = this.convertToIndexedObject(sqlResult, spaceType, 'total');
-        console.log('salenum', salenum);
+        logger.debug('salenum', salenum);
       })(), (async () => {
         sql = `SELECT ${spaceType}, count(id) as total from househistory where date="${CommonUtil.formatDate(d)}" and isnew=1 group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         newnum = this.convertToIndexedObject(sqlResult, spaceType, 'total');
-        console.log('newnum', newnum);
+        logger.debug('newnum', newnum);
       })(), (async () => {
         sql = `SELECT ${spaceType}, count(id) as total from househistory where date="${CommonUtil.formatDate(d)}" and deltaprice>0 group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         incnum = this.convertToIndexedObject(sqlResult, spaceType, 'total');
-        console.log('incnum', incnum);
+        logger.debug('incnum', incnum);
       })(), (async () => {
         sql = `SELECT ${spaceType}, count(id) as total from househistory where date="${CommonUtil.formatDate(d)}" and deltaprice<0 group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         rednum = this.convertToIndexedObject(sqlResult, spaceType, 'total');
-        console.log('rednum', rednum);
+        logger.debug('rednum', rednum);
       })(), (async () => {
         sql = `SELECT ${spaceType}, price from (SELECT * from househistory where date="${CommonUtil.formatDate(d)}" order by ${spaceType}, price asc) x group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         lowprice = this.convertToIndexedObject(sqlResult, spaceType, 'price');
-        console.log('lowprice', lowprice);
+        logger.debug('lowprice', lowprice);
       })(), (async () => {
         sql = `SELECT ${spaceType}, price from (SELECT * from househistory where date="${CommonUtil.formatDate(d)}" order by ${spaceType}, price desc) x group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         highprice = this.convertToIndexedObject(sqlResult, spaceType, 'price');
-        console.log('highprice', highprice);
+        logger.debug('highprice', highprice);
       })(), (async () => {
         sql = `SELECT ${spaceType}, unitprice from (SELECT * from househistory where date="${CommonUtil.formatDate(d)}" order by ${spaceType}, unitprice asc) x group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         lowunitprice = this.convertToIndexedObject(sqlResult, spaceType, 'unitprice');
-        console.log('lowunitprice', lowunitprice);
+        logger.debug('lowunitprice', lowunitprice);
       })(), (async () => {
         sql = `SELECT ${spaceType}, unitprice from (SELECT * from househistory where date="${CommonUtil.formatDate(d)}" order by ${spaceType}, unitprice desc) x group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         highunitprice = this.convertToIndexedObject(sqlResult, spaceType, 'unitprice');
-        console.log('highunitprice', highunitprice);
+        logger.debug('highunitprice', highunitprice);
       })(), (async () => {
         sql = `SELECT ${spaceType}, avg(unitprice) as average from househistory where date="${CommonUtil.formatDate(d)}" group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         averageprice = this.convertToIndexedObject(sqlResult, spaceType, 'average');
-        console.log('averageprice', averageprice);
+        logger.debug('averageprice', averageprice);
       })(), (async () => {
         sql = `SELECT ${spaceType}, sum(visit) as total from househistory where date="${CommonUtil.formatDate(d)}" group by ${spaceType}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         visitnum = this.convertToIndexedObject(sqlResult, spaceType, 'total');
-        console.log('visitnum', visitnum);
+        logger.debug('visitnum', visitnum);
       })(), (async () => {
         sql = `SELECT * from ljsummary where date="${CommonUtil.formatDate(lastday)}" and daterange=0 and spacerange=${spacerange}`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
         lastResult = this.convertToIndexedObject(sqlResult, 'space');
-        console.log('last result', lastResult);
+        logger.debug('last result', lastResult);
       })(),
     ]);
     for (let s in salenum) {
@@ -291,7 +291,7 @@ export class LianjiaReducer {
         sql = `SELECT space, sum(newnum) as snewnum, sum(incnum) as sincnum, sum(rednum) as srednum, sum(newvisit) as snewvisit FROM ljsummary where spacerange=${spacerange} and daterange=0 and date<="${CommonUtil.formatDate(d)}" and date>="${CommonUtil.formatDate(firstDate)}" group by space`;
         logger.debug(sql);
         sqlResult = await db.query(sql);
-        console.log('sum result', sqlResult);
+        logger.debug('sum result', sqlResult);
         newnum = this.convertToIndexedObject(sqlResult, 'space', 'snewnum');
         incnum = this.convertToIndexedObject(sqlResult, 'space', 'sincnum');
         rednum = this.convertToIndexedObject(sqlResult, 'space', 'srednum');
@@ -301,7 +301,7 @@ export class LianjiaReducer {
         logger.debug(sql);
         sqlResult = await db.query(sql);
         lastResult = this.convertToIndexedObject(sqlResult, 'space');
-        console.log('last result', lastResult);
+        logger.debug('last result', lastResult);
       })(),
     ];
     await Promise.all(tasks);
