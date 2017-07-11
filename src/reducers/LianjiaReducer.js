@@ -22,9 +22,11 @@ export class LianjiaReducer {
       d = new Date(sqlResult[0].date);
       d.setDate(d.getDate() + 1);
     }
-    while (new Date() > d) {
+    let nextDate = new Date();
+    nextDate = nextDate.setDate(nextDate.getDate()+1);
+    while (nextDate > d) {
       logger.log(`Summary from date ${CommonUtil.formatDate(d)}`);
-      let lastday = new Date('2017-06-30').setDate(d.getDate() - 1);
+      let lastday = new Date(d).setDate(d.getDate() - 1);
       await Promise.all([
         this.summaryForAll(d, lastday),
         this.summaryBySpace('district', 1, d, lastday),
@@ -33,7 +35,6 @@ export class LianjiaReducer {
       ]);    
       d.setDate(d.getDate() + 1);
     }
-
   }
 
   async summaryForAll(d, lastday) {

@@ -1,8 +1,9 @@
 import logger from '../utils/logger';
 export class Distributor {
-  constructor(crawler, collector, httpDelay) {
+  constructor(crawler, collector, reducer, httpDelay) {
     this.crawler = crawler;
     this.collector = collector;
+    this.reducer = reducer;
     this.httpDelay = httpDelay || 300;
     this.failUrls = [];
   }
@@ -45,6 +46,9 @@ export class Distributor {
           }
         }, delay);
       });
+    }
+    if(this.reducer){
+      await this.reducer.reduce();
     }
   }
 }

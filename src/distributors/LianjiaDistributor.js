@@ -3,6 +3,7 @@ import {LianjiaCrawler} from '../crawlers/LianjiaCrawler';
 import {LianjiaDealCollector} from '../collectors/LianjiaDealCollector';
 import {LianjiaPlotCollector} from '../collectors/LianjiaPlotCollector';
 import {LianjiaHouseCollector} from '../collectors/LianjiaHouseCollector';
+import {LianjiaReducer} from '../reducers/LianjiaReducer';
 import db from '../utils/db';
 import CommonUtil from '../utils/CommonUtil';
 import logger from '../utils/logger';
@@ -13,7 +14,8 @@ export class LianjiaDistributor extends Distributor{
     //第一次运行，需要去爬取小区
     let crawler = new LianjiaCrawler();
     let collector = !!isNew ? new LianjiaPlotCollector() : new LianjiaHouseCollector();
-    super(crawler, collector);
+    let reducer = new LianjiaReducer();
+    super(crawler, collector, reducer);
     this.isNew = !!isNew;
     this.crawler.setCookie(`lianjia_uuid=15e2f095-d460-49eb-86ce-af527a684e97; UM_distinctid=15ab752b2a34ae-03b0601076ca74-67f1a39-1fa400-15ab752b2a498c; _csrf=5f0636a97e4aee71b6c7288607413a89ea1f87ab68df51fff1dbaf9d9e2576c6a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%224a8lTQwf-OEux2r1EtR9bOJB_aoHWH3a%22%3B%7D; app_matrix_servers=e8d6171c1ec6a632142fec1ca24ccfa9; select_city=350200; _smt_uid=58c262fe.51c1f618; _ga=GA1.2.1749135290.1489134336; _gid=GA1.2.1615422921.1497167865; lianjia_ssid=c2f1438d-4538-4323-84c9-109fabd46d7b`);
     this.districts = ['xiangan', 'tongan', 'jimei', 'haicang', 'huli', 'siming'];
