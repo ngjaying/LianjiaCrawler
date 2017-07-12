@@ -22,9 +22,7 @@ export class LianjiaReducer {
       d = new Date(sqlResult[0].date);
       d.setDate(d.getDate() + 1);
     }
-    let nextDate = new Date();
-    nextDate = nextDate.setDate(nextDate.getDate()+1);
-    while (nextDate > d) {
+    while (CommonUtil.compareDate(new Date(), d) >= 0) {
       logger.log(`Summary from date ${CommonUtil.formatDate(d)}`);
       let lastday = new Date(d).setDate(d.getDate() - 1);
       await Promise.all([

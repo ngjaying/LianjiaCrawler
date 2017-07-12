@@ -55,7 +55,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
           obj['deltaprice'] = 0;
         }else{
           logger.debug(`Got existing history ${historys[0].date}`);
-          if(CommonUtil.compareDate(new Date(), new Date(historys[0].date))){
+          if(CommonUtil.compareDate(new Date(), new Date(historys[0].date))==0){
             logger.debug(`compare equal`);
             doInsert = false;
           }else{
