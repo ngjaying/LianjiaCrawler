@@ -3,26 +3,38 @@ import CommonUtil from '../utils/CommonUtil';
 import logger from '../utils/logger';
 
 export class LianjiaReducer {
+  constructor(startDate, endDate) {
+    this.startDate = startDate || '';
+    this.endDate = endDate || '';
+  }
+
   async reduce() {
-    //Get the current progress
-    let d = new Date();
-    let sql = `SELECT date from ljsummary order by date desc limit 0,1`;
-    logger.debug(`Get LianjiaReducer progress by ${sql}`);
-    let sqlResult = await db.query(sql);
-    if (sqlResult.length == 0) {
-      sql = `SELECT date from househistory order by date asc limit 0,1`;
-      logger.log(`No start yet, get LianjiaReducer start by ${sql}`);
-      sqlResult = await db.query(sql);
+    let d = this.startDate;
+    if (!d) {
+      //Get the current progress
+      d = new Date();
+      let sql = `SELECT date from ljsummary order by date desc limit 0,1`;
+      logger.debug(`Get LianjiaReducer progress by ${sql}`);
+      let sqlResult = await db.query(sql);
       if (sqlResult.length == 0) {
-        logger.log('No date yet!');
-        return;
+        sql = `SELECT date from househistory order by date asc limit 0,1`;
+        logger.log(`No start yet, get LianjiaReducer start by ${sql}`);
+        sqlResult = await db.query(sql);
+        if (sqlResult.length == 0) {
+          logger.log('No date yet!');
+          return;
+        }
+        d = new Date(sqlResult[0].date);
+      } else {
+        d = new Date(sqlResult[0].date);
+        d.setDate(d.getDate() + 1);
       }
-      d = new Date(sqlResult[0].date);
-    } else {
-      d = new Date(sqlResult[0].date);
-      d.setDate(d.getDate() + 1);
     }
-    while (CommonUtil.compareDate(new Date(), d) >= 0) {
+    if (!this.endDate) {
+      this.endDate = new Date();
+    }
+    logger.debug(`startDate: ${d}, endDate: ${this.endDate}`);
+    while (CommonUtil.compareDate(this.endDate, d) >= 0) {
       logger.log(`Summary from date ${CommonUtil.formatDate(d)}`);
       let lastday = new Date(d).setDate(d.getDate() - 1);
       await Promise.all([
@@ -30,7 +42,7 @@ export class LianjiaReducer {
         this.summaryBySpace('district', 1, d, lastday),
         this.summaryBySpace('block', 2, d, lastday),
         this.summaryBySpace('plotname', 3, d, lastday)
-      ]);    
+      ]);
       d.setDate(d.getDate() + 1);
     }
   }

@@ -4,7 +4,7 @@ import db from '../utils/db';
 import CommonUtil from '../utils/CommonUtil';
 
 export class LianjiaHouseCollector extends LianjiaCollector {
-  constructor(html, district){
+  constructor(html, district, date){
     let mapping = {
       'image' : '.sellListContent .img img', //data-original "https://image1.ljcdn.com/350200-inspection/f2599b8e-8c42-4f3f-b5d3-99fb6fc7d369.jpg.232x174.jpg"
       'houseid' : '.sellListContent .title a', //"https://xm.lianjia.com/ershoufang/105100823517.html" or "https://nl.hideproxy.me/go.php?u=https%3A%2F%2Fxm.lianjia.com%2Fershoufang%2F105100737092.html&b=4"
@@ -19,10 +19,15 @@ export class LianjiaHouseCollector extends LianjiaCollector {
     }
     super(html, mapping);
     this.district = district || '';
+    this.date =date || new Date();
   }
 
   setDistrict(district){
     this.district = district;
+  }
+
+  setDate(date){
+    this.date = date;
   }
 
   async save(){
@@ -55,7 +60,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
           obj['deltaprice'] = 0;
         }else{
           logger.debug(`Got existing history ${historys[0].date}`);
-          if(CommonUtil.compareDate(new Date(), new Date(historys[0].date))==0){
+          if(CommonUtil.compareDate(this.date, new Date(historys[0].date))==0){
             logger.debug(`compare equal`);
             doInsert = false;
           }else{
@@ -65,7 +70,7 @@ export class LianjiaHouseCollector extends LianjiaCollector {
           }
         }
         if(doInsert){
-          let sqlstr = `INSERT into househistory (houseid, price, unitprice, plotid, plotname, district, block, date, visit, isnew, deltaprice) VALUES(${obj.houseid},${obj.price},${obj.unitprice},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${CommonUtil.formatDate(new Date())}",${obj.visit},${obj.isnew},${obj.deltaprice})`;
+          let sqlstr = `INSERT into househistory (houseid, price, unitprice, plotid, plotname, district, block, date, visit, isnew, deltaprice) VALUES(${obj.houseid},${obj.price},${obj.unitprice},${obj.plotid},"${obj.plotname}","${this.district}","${obj.block}","${CommonUtil.formatDate(this.date)}",${obj.visit},${obj.isnew},${obj.deltaprice})`;
           logger.debug(sqlstr);
           db.query(sqlstr).then(() =>{
             logger.debug(`insert history successfully ${obj.houseid}`);

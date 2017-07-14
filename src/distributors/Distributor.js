@@ -1,15 +1,36 @@
 import logger from '../utils/logger';
+import CommonUtil from '../utils/CommonUtil';
+
 export class Distributor {
-  constructor(crawler, collector, reducer, httpDelay) {
+  constructor(crawler, collector, reducer, options) {    
     this.crawler = crawler;
     this.collector = collector;
     this.reducer = reducer;
-    this.httpDelay = httpDelay || 300;
+    if(!options){
+      options = {};
+    } 
+    this.httpDelay = options.httpDelay || 300;
+    this.urls = options.urls || [];
     this.failUrls = [];
   }
 
   setCollector(collector) {
     this.collector = collector;
+  }
+
+  async run(){
+    logger.debug(`Distributor run`);
+    for(let url of this.urls){
+      logger.debug(`Process ${url}`);
+      try{
+        await this.process(url);
+        let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
+        logger.debug(sleepTime);
+        await CommonUtil.sleep(sleepTime);
+      }catch(ex){
+        this.handleError(ex, url);
+      }
+    }
   }
 
   async process(url) {
