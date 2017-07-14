@@ -134,11 +134,13 @@ export class LianjiaDistributor extends Distributor{
         logger.log(`Blocked, save progress and exit`);
         await this._saveProgress();
         return true;
-      }
-      //TODO get the real url here? 
-      //Skip this page to failUrls for later retry           
-      this.failUrls.push({crawlType: this.crawlType, page: this.page, dp: this.districtPage});
-      this.page++;
+      }else if(ex.indexOf && ex.indexOf('ESOCKETTIMEDOUT')!= -1){
+        logger.log(`Timeout, will retry`);
+      }else{
+        //Skip this page to failUrls for later retry           
+        this.failUrls.push({crawlType: this.crawlType, page: this.page, dp: this.districtPage});
+        this.page++;
+      }      
       logger.log(ex);
     }
     let sleepTime = Math.floor(Math.random() * 1000 + 500) + this.httpDelay;
