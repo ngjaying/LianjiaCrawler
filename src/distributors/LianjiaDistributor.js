@@ -134,7 +134,7 @@ export class LianjiaDistributor extends Distributor{
         logger.log(`Blocked, save progress and exit`);
         await this._saveProgress();
         return true;
-      }else if(ex.indexOf && ex.indexOf('ESOCKETTIMEDOUT')!= -1){
+      }else if(ex.code == 'ETIMEDOUT' || ex.code == 'ESOCKETTIMEDOUT'){
         logger.log(`Timeout, will retry`);
       }else{
         //Skip this page to failUrls for later retry           
