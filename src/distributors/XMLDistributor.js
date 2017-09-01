@@ -18,7 +18,7 @@ export class XMLDistributor extends Distributor{
     let url;
     try{
       logger.log(`New run for page status ${this.page}/${this.totalPage}`);
-      if (this.totalPage >= 0 && this.page > this.totalPage) {
+      if ((this.totalPage >= 0 && this.page > this.totalPage) ||(this.totalPage < 0 && this.page > 10)) {
         if(this.failUrls.length > 0){
           logger.error(`Still have ${this.failUrls.length} fails`, {from: `XMCDistributor`, code: '1001', msg: JSON.stringify(this.failUrls)})
         }
