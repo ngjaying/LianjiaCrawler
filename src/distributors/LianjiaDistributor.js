@@ -22,6 +22,7 @@ export class LianjiaDistributor extends Distributor{
     this.districtNames = ['翔安', '同安', '集美', '海沧', '湖里', '思明'];
     this.totalPage = -1;
     this.proxyIndex = 0;
+    this.retry = 0;
     //Complete current crawl type
     this.completed = false;
     //TODO Proxy and cookie setting
@@ -130,12 +131,10 @@ export class LianjiaDistributor extends Distributor{
       await this.process(url);
     }catch(ex){
       //没有被process catch，说明代理也无法获取网页
-      if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
+      if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult' || ex.indexOf('TIMEDOUT') != -1){
         logger.log(`Blocked, save progress and exit`);
         await this._saveProgress();
         return true;
-      }else if(ex.code == 'ETIMEDOUT' || ex.code == 'ESOCKETTIMEDOUT'){
-        logger.log(`Timeout, will retry`);
       }else{
         //Skip this page to failUrls for later retry           
         this.failUrls.push({crawlType: this.crawlType, page: this.page, dp: this.districtPage});
@@ -192,11 +191,17 @@ export class LianjiaDistributor extends Distributor{
 
   async handleError(ex, url){
     //被屏蔽了
-    if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult'){
+    if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult' || ex.indexOf('TIMEDOUT') != -1){
       logger.error(ex['name']);
       this.proxyIndex++;
       if(this.proxyIndex > this.proxies.length){
-        throw ex;
+        if(this.retry < 10){
+          await CommonUtil.sleep(1000*60*5);
+          this.retry++;
+          this.proxyIndex = 0;
+        }else{
+          throw ex;
+        }        
       }else{
         this.crawler.setCookie(this.proxies[this.proxyIndex-1].cookie);
         //需要先访问一下才可用代理

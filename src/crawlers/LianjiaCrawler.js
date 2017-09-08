@@ -13,11 +13,11 @@ export class LianjiaCrawler extends Crawler{
     this._reqOptions.url = url;
     let body = await req.get(this._reqOptions);
     if(body.indexOf('流量异常')!=-1){
-      if(await this._verifyHuman(body)){
-        return await this.crawl(url);
-      }else{
+      // if(await this._verifyHuman(body)){
+      //   return await this.crawl(url);
+      // }else{
         throw {name: 'Crawler_Locked', message: `Cannot getting ${url}, locked`};
-      }
+      //}
     }else if(body.indexOf('厦门二手房')!=-1){
       return body;
     }else{
