@@ -131,7 +131,7 @@ export class LianjiaDistributor extends Distributor{
       await this.process(url);
     }catch(ex){
       //没有被process catch，说明代理也无法获取网页
-      if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult' || ex.indexOf('TIMEDOUT') != -1){
+      if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult' || ex.name.indexOf('TIMEDOUT') != -1){
         logger.log(`Blocked, save progress and exit`);
         await this._saveProgress();
         return true;
@@ -191,7 +191,7 @@ export class LianjiaDistributor extends Distributor{
 
   async handleError(ex, url){
     //被屏蔽了
-    if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult' || ex.indexOf('TIMEDOUT') != -1){
+    if(ex.name == 'Crawler_Locked' || ex.name == 'Crawler_MalResult' || ex.name.indexOf('TIMEDOUT') != -1){
       logger.error(ex['name']);
       this.proxyIndex++;
       if(this.proxyIndex > this.proxies.length){
